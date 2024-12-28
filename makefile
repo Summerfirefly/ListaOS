@@ -1,9 +1,11 @@
-AS = as
-ASFLAGS = --32
-CC = gcc
-CFLAGS = -m32 -Wall -nostdinc -std=c99 -fno-builtin -fno-pic -fno-stack-protector
-LD = ld
-LDFLAGS = -m elf_i386 --oformat binary -nostdlib
+TARGET=i686-elf
+
+AS = $(TARGET)-as
+CC = $(TARGET)-gcc
+LD = $(TARGET)-gcc
+
+CFLAGS = -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector
+LDFLAGS = -nostdlib -lgcc -ffreestanding -Wl,--oformat=binary
 
 VPATH = src:src/bootloader
 
@@ -14,13 +16,13 @@ libKernelObj = console.o color.o display.o div64.o font.o io.o memory.o mm.o std
 all: boot.bin init.bin kernel.sys
 
 boot.bin: boot.o
-	$(LD) $(LDFLAGS) -Ttext=0x7c00 boot.o -o boot.bin
+	$(LD) -o boot.bin $(LDFLAGS) -Ttext=0x7c00 boot.o
 
 init.bin: start.o
-	$(LD) $(LDFLAGS) -Ttext=0x8200 start.o -o init.bin
+	$(LD) -o init.bin $(LDFLAGS) -Ttext=0x8200 start.o
 	
 kernel.sys: main.o libkernel.a
-	$(LD) $(LDFLAGS) -Ttext=0x20000 -e main main.o -o kernel.sys -L. -lkernel
+	$(LD) -o kernel.sys $(LDFLAGS) -Ttext=0x20000 -e main main.o -L. -lkernel
 
 libkernel.a: $(libKernelObj)
 	ar rcs libkernel.a $(libKernelObj)
