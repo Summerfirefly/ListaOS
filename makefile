@@ -28,4 +28,5 @@ libkernel.a: $(libKernelObj)
 	ar rcs libkernel.a $(libKernelObj)
 
 clean:
-	rm *.o
+	-rm *.o
+	-rm *.a
