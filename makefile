@@ -1,29 +1,65 @@
 AS = as
 ASFLAGS = --32
 CC = gcc
-CFLAGS = -m32 -Wall -nostdinc -std=c99 -fno-builtin -fno-pic -fno-stack-protector
+CFLAGS = -m32 -Wall -nostdinc -std=c99 -fno-builtin -fno-pic -fno-stack-protector -Isrc/libkernel
 LD = ld
-LDFLAGS = -m elf_i386 --oformat binary -nostdlib
+LDFLAGS = -m elf_i386 -nostdlib
 
-VPATH = src:src/bootloader
+VPATH = src
 
-libKernelObj = console.o color.o display.o div64.o font.o io.o memory.o mm.o stdio.o interrupt.o intr_handler.o keyboard.o timer.o
+bootloaderSrc = boot.s start.s
+libKernelSrc_c = color.c console.c \
+                 display.c div64.c \
+                 font.c \
+                 interrupt.c io.c \
+                 keyboard.c \
+                 memory.c mm.c \
+                 stdio.c \
+                 timer.c
+libkernelSrc_s = intr_handler.s
 
-.PHONY: all clean
+bootloaderObj := $(bootloaderSrc:%.s=build/bootloader/%.o)
+libKernelObj_c := $(libKernelSrc_c:%.c=build/libkernel/%.o)
+libKernelObj_s := $(libkernelSrc_s:%.s=build/libkernel/%.o)
 
-all: boot.bin init.bin kernel.sys
+.PHONY: all dir clean
 
-boot.bin: boot.o
-	$(LD) $(LDFLAGS) -Ttext=0x7c00 boot.o -o boot.bin
+all: dir boot.bin init.bin kernel.sys
 
-init.bin: start.o
-	$(LD) $(LDFLAGS) -Ttext=0x8200 start.o -o init.bin
+dir:
+	@mkdir -p build/
+	@mkdir -p build/bootloader
+	@mkdir -p build/libkernel
+
+$(bootloaderObj) $(libKernelObj_s): build/%.o: %.s
+	@echo -e "Building $@"
+	@$(AS) $(ASFLAGS) -o $@ $<
+
+$(libKernelObj_c): build/%.o: %.c
+	@echo -e "Building $@"
+	@$(CC) -c $(CFLAGS) -o $@ $<
+
+build/main.o: main.c
+	@echo -e "Building $@"
+	@$(CC) -c $(CFLAGS) -o $@ $<
+
+boot.bin: build/bootloader/boot.o
+	@echo -e "Linking $@"
+	@$(LD) $(LDFLAGS) -Ttext=0x7c00 $< -o build/bootloader/boot.elf
+	@objcopy -O binary -j .text build/bootloader/boot.elf build/boot.bin
+
+init.bin: build/bootloader/start.o
+	@echo -e "Linking $@"
+	@$(LD) $(LDFLAGS) -Ttext=0x8200 $< -o build/bootloader/init.elf
+	@objcopy -O binary -j .text build/bootloader/init.elf build/init.bin
 	
-kernel.sys: main.o libkernel.a
-	$(LD) $(LDFLAGS) -Ttext=0x20000 -e main main.o -o kernel.sys -L. -lkernel
+kernel.sys: build/main.o build/libkernel.a
+	@echo -e "Linking $@"
+	@$(LD) $(LDFLAGS) --oformat binary -Ttext=0x20000 -e main build/main.o -o build/kernel.sys -Lbuild/ -lkernel
 
-libkernel.a: $(libKernelObj)
-	ar rcs libkernel.a $(libKernelObj)
+build/libkernel.a: $(libKernelObj_c) $(libKernelObj_s)
+	@echo -e "Archiving $@"
+	@ar rcs $@ $(libKernelObj_c) $(libKernelObj_s)
 
 clean:
-	rm *.o
+	-rm -rf build/
