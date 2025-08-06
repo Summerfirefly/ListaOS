@@ -16,16 +16,23 @@ _start:
     call read_sector
 
     # Find Boot FAT16 filesystem start sector to bx
-    movw $0x8000, %ax
-    movw 0x20(%ax), %bx
+    movw $0x8000, %bx
+    movw 0x20(%bx), %ax
 
-    # Load init.bin from hiden sector
-    movw %bx, start_sector
-    movw $0x0005, count
+    # Load init.bin from hidden sector
+    movw %ax, start_sector
+    movw $0x0004, count         # 4 hidden sector for FAT16
+    call read_sector
+
+    movw $msgCallInit, %ax
+    movw %ax, %bp
+    movw $0x000b, %cx
+    call print_msg
 
     # 开始执行init.bin
     movb DriverNumber, %dl
     movw start_sector, %bx
+    movw %sp, %bp
     call 0x8200
 
 fin:
@@ -35,13 +42,16 @@ load_error:
     movw $msgLoadError, %ax
     movw %ax, %bp
     movw $0x000b, %cx
+    call print_msg
+    jmp  fin
+
 print_msg:
     movw $0x000f, %bx
     movw $0x1301, %ax
     movb $0x00, %dl
     movb $0x00, %dh
     int  $0x10
-    jmp  fin
+    ret
 
 read_sector:
     movb $0x42, %ah             # Function to read disk
@@ -62,6 +72,7 @@ start_sector:   .int  0x00000000
                 .int  0x00000000
 
 msgLoadError:   .ascii  "Load error!"
+msgCallInit:    .ascii  "Call  init!"
 DriverNumber:   .byte   0x00
 
 .org 446

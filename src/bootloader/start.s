@@ -5,23 +5,23 @@
 _start:
 .code16
     movb %dl, DriverNumber
-    xor  %ax, %ax
+    xorw %ax, %ax
     movw %ax, %ds
     movw %ax, %es
 
     # Calculate FAT16 related sector number
     movw %bx, %ax
-    addw $0x0005, %ax
+    addw $0x0004, %ax               # 4 hidden sector for FAT16
     movw %ax, FAT1StartSector
 
     movw $0x8000, %bx
-    xor  %ax, %ax
     movb 0x0d(%bx), %al
     movb %al, SectorsPerCluster
 
+    xorw %ax, %ax
     movb 0x10(%bx), %al
     movw 0x16(%bx), %cx
-    mul  %cx
+    mulw %cx
     addw FAT1StartSector, %ax
     movw %ax, RootDirStartSector
 
@@ -46,9 +46,16 @@ no_remainder:
     je   file_missed_error
 
     # Load kernel.sys from 0x20000
-    movw $0x0000, off
-    movw $0x2000, seg
+    movw %ax, %bx
+    movw $0x0000, %ax
+    movw $0x2000, %dx
     call load_file
+
+    movw %bp, %di
+    movw $msgKernelLoaded, %ax
+    movw %ax, %bp
+    call print_msg
+    movw %di, %bp
 
     movb $0x03, %al
     movb $0x00, %ah
@@ -68,7 +75,7 @@ no_remainder:
     movw $0x0118, %cx
     int  $0x10
 
-    #Get All Video Mode
+    # Get All Video Mode
     xorl %ebx, %ebx
     movw SVGAInfoAddr, %bx
     addl $0x0000000e, %ebx
@@ -84,6 +91,7 @@ no_remainder:
 2:  movw $0x4f01, %ax
     movw (%ebx), %cx
     cmp  $0xffff, %cx
+    # TODO: BUGFIX: kernel fail in this loop
     je   2f
     int  $0x10
     addw $0x0002, %bx
@@ -143,7 +151,7 @@ finish_probe:
     movl %cr0, %eax
     orl  $0x1, %eax
     mov  %eax, %cr0
-    data32 ljmp $PROT_MODE_CSEG, $1f
+    data32 ljmp $PROT_MODE_CSEG, $3f
 
 fin:
     jmp  fin
@@ -151,22 +159,23 @@ fin:
 load_error:
     movw $msgLoadError, %ax
     movw %ax, %bp
-    movw $0x000b, %cx
-    jmp  print_msg
+    call print_msg
+    jmp  fin
 
 file_missed_error:
     movw $msgFileMissed, %ax
     movw %ax, %bp
-    movw $0x000c, %cx
-    jmp  print_msg
+    call print_msg
+    jmp  fin
 
 print_msg:
     movw $0x000f, %bx
     movw $0x1301, %ax
+    movw $0x000e, %cx
     movb $0x00, %dl
     movb $0x00, %dh
     int  $0x10
-    jmp  fin
+    ret
 
 # Function find_file
 #   Find file in FAT16 filesystem root directory
@@ -174,17 +183,20 @@ print_msg:
 #   Params:
 #       %si: filename
 #   Return:
-#       %ax: Memory address of directory enrty in root directory
+#       %ax: Memory address of directory entry in root directory
 find_file:
+    pushw %bp
+    movw %sp, %bp
     movw $0x9000, off
     movw $0x0000, seg
     movw RootEntrySectorCount, %cx
-    pushw %cx
+    movw %cx, -2(%bp)
     movw RootDirStartSector, %ax
     movw %ax, start_sector
     movw %si, %bx
 find_start:
     # Load 1 sector of root directory table
+    movw $1, sector_count
     call read_sector
     movw off, %di
     movw BytesPerSector, %dx
@@ -200,23 +212,22 @@ find_start:
     jnz  1b
     andw $0xfff0, %di
     movw %di, %ax
+    popw %bp
     ret
 next_file:
     andw $0xfff0, %di
     addw $0x0020, %di
     subw $0x0020, %dx
     jnz  2b
-    popw %cx
-    dec  %cx                    # 此扇区内无文件
+    decw -2(%bp)                # 此扇区内无文件
     jz   find_not_found         # 根目录无内核文件，抛出错误提示
-    pushw %cx
     addw $0x0001, start_sector
     jmp  find_start             # 读取根目录表下一个扇区
 find_not_found:
     movw $0x0000, %ax
+    popw %bp
     ret
 
-# TODO: NEED REIMPLEMENT DUE TO CODE REFACTOR
 # Function load_file
 #   Load file from root directory of FAT16 filesystem
 #   Note: this function will use a sector size of memory from 0x9000 to store FAT table
@@ -225,45 +236,56 @@ find_not_found:
 #       %dx: Load address segment
 #       %bx: FAT entry address of the file to load
 load_file:
-    movw 26(%bx), %ax           # 将起始簇号放入%ax
+    pushw %bp
+    movw %sp, %bp
     xorl %ecx, %ecx
-    movw seg, %cx
+    movw %dx, %cx
     shl  $4, %ecx
-    addw off, %cx               # %ecx中存放加载地址
+    addw %ax, %cx
+    movl %ecx, -4(%bp)          # Save load address into stack
+    movw 0x1a(%bx), %ax         # Save file start cluster number into %ax
 2:  movw %ax, %bx
-    movw %ax, %di
+    movw %ax, -6(%bp)
     subw $2, %bx                # FAT 16的数据区簇号从2开始，因此先减2
-    andl $0x0000ffff, %ebx
-    shl  $2, %ebx
-    addl DataStartSector, %ebx  # 计算得到待读簇的首扇区号，存放在%ebx
-    andw $0x00ff, %di
-    shl  $1, %di
-    addw $0x8000, %di
-    shr  $8, %ax
-    addw FAT1StartSector, %ax   # 此时%ax存有所需FAT表项存放的扇区号
+    xorw %ax, %ax
+    movb SectorsPerCluster, %al
+    mul  %bx
+    movw %dx, %bx
+    shl  $16, %ebx
+    movw %ax, %bx
+    addl DataStartSector, %ebx  # Calculate and save file data sector into %ebx
+    movw $2, %ax
+    xorw %dx, %dx
+    mulw -6(%bp)
+    divw BytesPerSector
+    addw FAT1StartSector, %ax   # Calculate and save FAT table sector into %ax
 read_fat:
     andl $0x0000ffff, %eax
-    movw $0x0001, count
+    movw $0x0001, sector_count
     movl %eax, start_sector
-    movw $0x8000, off           # FAT记录会放在0x8000 - 0x8200, 注意
+    movw $0x9000, off
     movw $0x0000, seg
     call read_sector
 # Load File
-    movw $0x0004, count
+    xorw %ax, %ax
+    movb SectorsPerCluster, %al
+    movw %ax, sector_count
     movl %ebx, start_sector
+    movw -4(%bp), %cx
     movw %cx, off
-    xorw %cx, %cx
-    shr  $4, %ecx
+    movw -2(%bp), %cx
+    shr  $4, %cx
     movw %cx, seg
     call read_sector
-    xorl %ecx, %ecx
-    movw seg, %cx
-    shl  $4, %ecx
-    addw off, %cx
-    addl $0x00000800, %ecx
-    movw (%di), %ax
-    cmp  $0xfff0, %ax
+    movw $2, %ax
+    xorw %dx, %dx
+    mulw -6(%bp)
+    divw BytesPerSector
+    movw %dx, %bx
+    movw 0x9000(%bx), %ax
+    cmpw $0xfff8, %ax
     jb   2b
+    popw %bp
     ret
 
 read_sector:
@@ -278,14 +300,16 @@ read_sector:
 info_packet:
 size:           .byte 0x10          # size of packet
 reverse:        .byte 0x00          # not used
-count:          .word 0x0001        # amount to read
+sector_count:   .word 0x0001        # amount to read
 off:            .word 0x0000        # memary address offset
 seg:            .word 0x1000        # memary address segment
 start_sector:   .int  0x00000000
                 .int  0x00000000
 
-msgLoadError:           .ascii  "Load error!"
-msgFileMissed:          .ascii  "File missed!"
+msgLoadError:           .ascii  "Load error!   "
+msgFileMissed:          .ascii  "File missed!  "
+msgStartInit:           .ascii  "Init started! "
+msgKernelLoaded:        .ascii  "Kernel loaded!"
 FAT1StartSector:        .word   0x0000
 RootEntrySectorCount:   .word   0x0000
 RootDirStartSector:     .int    0x00000000
@@ -296,15 +320,14 @@ DriverNumber:           .byte   0x00
 KernelFileName:         .ascii  "KERNEL  SYS"
 
 .code32
-1:	movw  $PROT_MODE_DSEG, %ax
+3:	movw  $PROT_MODE_DSEG, %ax
     movw  %ax, %ds
     movw  %ax, %es
     movw  %ax, %fs
     movw  %ax, %gs
     movw  %ax, %ss
     movl  $0x7e00, %esp
-    movl  $0, %ebp
-    #call  main
+    movl  %esp, %ebp
     call  0x20000
 
 loop:

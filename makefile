@@ -50,12 +50,11 @@ boot.bin: build/bootloader/boot.o
 
 init.bin: build/bootloader/start.o
 	@echo -e "Linking $@"
-	@$(LD) $(LDFLAGS) -Ttext=0x8200 $< -o build/bootloader/init.elf
-	@objcopy -O binary -j .text build/bootloader/init.elf build/init.bin
-	
+	@$(LD) $(LDFLAGS) -T init.lds $< -o build/init.bin
+
 kernel.sys: build/main.o build/libkernel.a
 	@echo -e "Linking $@"
-	@$(LD) $(LDFLAGS) --oformat binary -Ttext=0x20000 -e main build/main.o -o build/kernel.sys -Lbuild/ -lkernel
+	@$(LD) $(LDFLAGS) -T kernel.lds build/main.o -o build/kernel.sys -Lbuild/ -lkernel
 
 build/libkernel.a: $(libKernelObj_c) $(libKernelObj_s)
 	@echo -e "Archiving $@"
