@@ -1,8 +1,10 @@
-AS = as
-ASFLAGS = --32
-CC = gcc
-CFLAGS = -m32 -Wall -nostdinc -std=c99 -fno-builtin -fno-pic -fno-stack-protector -Isrc/libkernel
-LD = ld
+TARGET = i686-elf
+
+AS = $(TARGET)-as
+ASFLAGS =
+CC = $(TARGET)-gcc
+CFLAGS = -Wall -Wextra -std=c11 -ffreestanding -fno-builtin -fno-pic -fno-stack-protector -Isrc/libkernel
+LD = $(TARGET)-ld
 LDFLAGS = -m elf_i386 -nostdlib
 
 VPATH = src
@@ -54,7 +56,7 @@ init.bin: build/bootloader/start.o
 
 kernel.sys: build/main.o build/libkernel.a
 	@echo -e "Linking $@"
-	@$(LD) $(LDFLAGS) -T kernel.lds build/main.o -o build/kernel.sys -Lbuild/ -lkernel
+	@$(LD) $(LDFLAGS) -T kernel.lds -o build/kernel.sys build/main.o -Lbuild/ -lkernel
 
 build/libkernel.a: $(libKernelObj_c) $(libKernelObj_s)
 	@echo -e "Archiving $@"

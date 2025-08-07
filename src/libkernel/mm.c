@@ -16,7 +16,7 @@ unsigned long long get_free_page_num(void)
 {
     unsigned long long freeNum = 0;
 
-    for (int i = 0; i < pageNum; ++i)
+    for (unsigned long long i = 0; i < pageNum; ++i)
     {
         if (physMemMap[i].state == 0) freeNum++;
     }
@@ -59,7 +59,7 @@ void mm_init(void)
         }
     }
 
-    for (int i = 0; i < (pageNum*sizeof(PHYS_MEM_PAGE)+0xfff)/0x1000; ++i)
+    for (unsigned int i = 0; i < (pageNum * sizeof(PHYS_MEM_PAGE) + 0xfff) / 0x1000; ++i)
     {
         physMemMap[i].state = 0xffffffff;
     }

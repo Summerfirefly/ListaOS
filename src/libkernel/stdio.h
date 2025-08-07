@@ -10,9 +10,12 @@
  *
  */
 
+#include <stdarg.h>
+
 #define NULL 0
 
 int putc(char ch);
 int puts(const char *str);
 int printf(const char *format, ...);
+int vprintf(const char *format, va_list args);
 int sprintf(char *str, const char *format, ...);

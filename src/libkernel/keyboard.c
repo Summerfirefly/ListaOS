@@ -1,5 +1,5 @@
 #include "keyboard.h"
-#include "stdbool.h"
+#include <stdbool.h>
 #include "stdio.h"
 
 unsigned char keymap[4][0x80] = {

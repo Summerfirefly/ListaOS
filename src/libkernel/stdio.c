@@ -10,8 +10,8 @@
  *
  */
 
-#include "stdarg.h"
-#include "stdbool.h"
+#include <stdarg.h>
+#include <stdbool.h>
 #include "stdio.h"
 #include "console.h"
 #include "div64.h"
@@ -52,10 +52,17 @@ int puts(const char *str)
 /*Print format string to screen*/
 int printf(const char *format, ...)
 {
+    va_list args;
+    va_start(args, format);
+    const int len = vprintf(format, args);
+    va_end(args);
+    return len;
+}
+
+
+int vprintf(const char *format, va_list args)
+{
     int len = 0;
-    va_list vap;
-    va_start(vap, format);
-    
     while (*format != '\0')
     {
         while (*format != '%' && *format != '\0')
@@ -63,88 +70,87 @@ int printf(const char *format, ...)
             putc(*format++);
             ++len;
         }
-        
+
         if (*format == '\0')
             break;
-        
-        char sign = *(++format);
-        switch (sign)
+
+        switch (*(++format))
         {
             case 'c': /*%c*/
-                putc((char) va_arg(vap, int));
+                putc((char) va_arg(args, int));
                 ++len;
                 break;
             case 'd': /*%d*/
-                len += puts(_itoa(va_arg(vap, int)));
+                len += puts(_itoa(va_arg(args, int)));
                 break;
             case 'f': /*%f*/
-                len += puts(_ftoa(va_arg(vap, double), 6));
+                len += puts(_ftoa(va_arg(args, double), 6));
                 break;
             case 'l':
                 ++format;
                 if (*format == 'd') /*%ld*/
                 {
-                    len += puts(_itoa(va_arg(vap, long)));
+                    len += puts(_itoa(va_arg(args, long)));
                 }
                 else if (*format == 'u') /*%lu*/
                 {
-                    len += puts(_utoa(va_arg(vap, unsigned long)));
+                    len += puts(_utoa(va_arg(args, unsigned long)));
                 }
                 else if (*format == 'X') /*%lX*/
                 {
-                    len += puts(_itoh(va_arg(vap, unsigned long), true));
+                    len += puts(_itoh(va_arg(args, unsigned long), true));
                 }
                 else if (*format == 'x') /*%lx*/
                 {
-                    len += puts(_itoh(va_arg(vap, unsigned long), false));
+                    len += puts(_itoh(va_arg(args, unsigned long), false));
                 }
                 else
                 {
                     ++format;
                     if (*format == 'd') /*%lld*/
                     {
-                        len += puts(_itoa(va_arg(vap, long long)));
+                        len += puts(_itoa(va_arg(args, long long)));
                     }
                     else if (*format == 'u') /*%llu*/
                     {
-                        len += puts(_utoa(va_arg(vap, unsigned long long)));
+                        len += puts(_utoa(va_arg(args, unsigned long long)));
                     }
                     else if (*format == 'X') /*%llX*/
                     {
-                        len += puts(_itoh(va_arg(vap, unsigned long long), true));
+                        len += puts(_itoh(va_arg(args, unsigned long long), true));
                     }
                     else if (*format == 'x') /*%llx*/
                     {
-                        len += puts(_itoh(va_arg(vap, unsigned long long), false));
+                        len += puts(_itoh(va_arg(args, unsigned long long), false));
                     }
                 }
                 break;
             case 'p': /*%p*/
-                len += puts(_ptoa(va_arg(vap, unsigned int)));
+                len += puts(_ptoa(va_arg(args, unsigned int)));
                 break;
             case 's': /*%s*/
-                len += puts(va_arg(vap, char *));
+                len += puts(va_arg(args, char *));
                 break;
             case 'u': /*%u*/
-                len += puts(_utoa(va_arg(vap, unsigned int)));
+                len += puts(_utoa(va_arg(args, unsigned int)));
                 break;
             case 'X': /*%X*/
-                len += puts(_itoh(va_arg(vap, unsigned int), true));
+                len += puts(_itoh(va_arg(args, unsigned int), true));
                 break;
             case 'x': /*%x*/
-                len += puts(_itoh(va_arg(vap, unsigned int), false));
+                len += puts(_itoh(va_arg(args, unsigned int), false));
                 break;
             case '%': /*%%*/
                 putc('%');
                 ++len;
                 break;
-            default:;
+            default:
+                break;
         }
-        
+
         ++format;
     }
 
-    va_end(vap);
     return len;
 }
 
