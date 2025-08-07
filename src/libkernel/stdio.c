@@ -14,7 +14,6 @@
 #include <stdbool.h>
 #include "stdio.h"
 #include "console.h"
-#include "div64.h"
 
 
 /*Private functions*/
@@ -341,7 +340,8 @@ char *_itoa(long long num)
     char temp[30] = {'\0'};
     while (num != 0)
     {
-        temp[j++] = (char) do_div64_32((unsigned long long *)&num, 10) + '0';
+        temp[j++] = (char)(num % 10 + '0');
+        num /= 10;
     }
     
     while (j > 0)
@@ -431,15 +431,15 @@ char *_utoa(unsigned long long num)
     char temp[30] = {'\0'};
     while (num != 0)
     {
-        temp[j++] = (char) do_div64_32(&num, 10) + '0';
+        temp[j++] = (char)(num % 10 + '0');
+        num /= 10;
     }
-    
+
     while (j > 0)
     {
         str[i++] = temp[--j];
     }
     
     str[i] = '\0';
-    
     return str;
 }

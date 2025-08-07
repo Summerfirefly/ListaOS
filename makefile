@@ -5,7 +5,7 @@ ASFLAGS =
 CC = $(TARGET)-gcc
 CFLAGS = -Wall -Wextra -std=c11 -ffreestanding -fno-builtin -fno-pic -fno-stack-protector -Isrc/libkernel
 LD = $(TARGET)-ld
-LDFLAGS = -m elf_i386 -nostdlib
+LDFLAGS = -nostdlib
 
 VPATH = src
 
@@ -56,7 +56,7 @@ init.bin: build/bootloader/start.o
 
 kernel.sys: build/main.o build/libkernel.a
 	@echo -e "Linking $@"
-	@$(LD) $(LDFLAGS) -T kernel.lds -o build/kernel.sys build/main.o -Lbuild/ -lkernel
+	@$(CC) $(LDFLAGS) -ffreestanding -T kernel.lds -o build/kernel.sys build/main.o -Lbuild/ -lkernel -lgcc
 
 build/libkernel.a: $(libKernelObj_c) $(libKernelObj_s)
 	@echo -e "Archiving $@"
