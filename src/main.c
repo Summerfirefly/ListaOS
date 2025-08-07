@@ -6,9 +6,9 @@
 #include "mm.h"
 #include "timer.h"
 
-/* 
+/*
  *         Simple Memory Map
- * 
+ *
  *  Size         Address         Use for
  *  31KB  0x00000000-0x00007e00  Stack
  * 0.5KB  0x00007e00-0x00008000  Current VBE Mode Info
@@ -65,7 +65,7 @@ int main(void)
         {
             keyboard_buffer_clear();
         }
-		
+
 		if (count % 50 == 0)
 		{
 			toggle_cursor();

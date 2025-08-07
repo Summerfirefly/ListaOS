@@ -29,7 +29,7 @@ _start:
     movw $0x000b, %cx
     call print_msg
 
-    # 开始执行init.bin
+    # Jump to init.bin code
     movb DriverNumber, %dl
     movw start_sector, %bx
     movw %sp, %bp

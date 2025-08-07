@@ -25,19 +25,29 @@ _start:
     addw FAT1StartSector, %ax
     movw %ax, RootDirStartSector
 
-    movw 0x11(%bx), %cx
-    movw 0x20, %ax
-    mul  %cx
+    movw 0x11(%bx), %cx             # FAT16 root directory entries count
+    movw $0x20, %ax                 # 32 bytes per entry
+    mulw %cx
     movw 0x0b(%bx), %cx
     movw %cx, BytesPerSector
     divw %cx
-    cmp  0x0000, %dx
+    cmp  $0x0000, %dx
     je   no_remainder
     inc  %ax
 no_remainder:
     movw %ax, RootEntrySectorCount
     addw RootDirStartSector, %ax
     movw %ax, DataStartSector
+
+    xorw %ax, %ax
+    movb SectorsPerCluster, %al
+    mulw BytesPerSector
+    movw %ax, %bx
+    andl $0x0000ffff, %ebx
+    movw %dx, %ax
+    shll $16, %eax
+    addl %ebx, %eax
+    movl %eax, BytesPerCluster
 
     # Find kernel.sys in root directory
     movw $KernelFileName, %si
@@ -67,7 +77,7 @@ no_remainder:
     movw $0x4f00, %ax
     int  $0x10
 
-    #Get VBE Information
+    # Get VBE Information
     movw $0x0000, %ax
     movw %ax, %es
     movw VBEModeInfoAddr, %di
@@ -91,7 +101,6 @@ no_remainder:
 2:  movw $0x4f01, %ax
     movw (%ebx), %cx
     cmp  $0xffff, %cx
-    # TODO: BUGFIX: kernel fail in this loop
     je   2f
     int  $0x10
     addw $0x0002, %bx
@@ -123,8 +132,8 @@ continue:
     orb  $0x02, %al
     outb %al, $0x92
 
-    #Get Memory Info with INT15H-E820
-    #Start At Addr 0xe000
+    # Get Memory Info with INT15H-E820
+    # Start At Addr 0xe000
     movl $0, 0xe000
     xorl %ebx, %ebx
     movw $0x0000, %ax
@@ -187,6 +196,7 @@ print_msg:
 find_file:
     pushw %bp
     movw %sp, %bp
+    subw $2, %sp
     movw $0x9000, off
     movw $0x0000, seg
     movw RootEntrySectorCount, %cx
@@ -206,12 +216,13 @@ find_start:
 1:  movb (%di), %ah
     lodsb
     cmp  %ah, %al
-    jne  next_file              # 逐字符比较文件名，有不同则跳到下一个文件
+    jne  next_file              # Compare filename, if different, jump to next file
     inc  %di
     dec  %ch
     jnz  1b
     andw $0xfff0, %di
     movw %di, %ax
+    movw %bp, %sp
     popw %bp
     ret
 next_file:
@@ -219,12 +230,13 @@ next_file:
     addw $0x0020, %di
     subw $0x0020, %dx
     jnz  2b
-    decw -2(%bp)                # 此扇区内无文件
-    jz   find_not_found         # 根目录无内核文件，抛出错误提示
+    decw -2(%bp)                # File not found in loaded sector
+    jz   find_not_found         # All root entry table sectors have been checked, file not found
     addw $0x0001, start_sector
-    jmp  find_start             # 读取根目录表下一个扇区
+    jmp  find_start             # Start to search next sector of root entry table
 find_not_found:
     movw $0x0000, %ax
+    movw %bp, %sp
     popw %bp
     ret
 
@@ -238,6 +250,7 @@ find_not_found:
 load_file:
     pushw %bp
     movw %sp, %bp
+    subw $6, %sp
     xorl %ecx, %ecx
     movw %dx, %cx
     shl  $4, %ecx
@@ -246,7 +259,7 @@ load_file:
     movw 0x1a(%bx), %ax         # Save file start cluster number into %ax
 2:  movw %ax, %bx
     movw %ax, -6(%bp)
-    subw $2, %bx                # FAT 16的数据区簇号从2开始，因此先减2
+    subw $2, %bx                # Data cluster number is start from 2 in FAT16 filesystem, minus 2 first
     xorw %ax, %ax
     movb SectorsPerCluster, %al
     mul  %bx
@@ -271,12 +284,14 @@ read_fat:
     movb SectorsPerCluster, %al
     movw %ax, sector_count
     movl %ebx, start_sector
-    movw -4(%bp), %cx
+    movl -4(%bp), %ecx
     movw %cx, off
-    movw -2(%bp), %cx
-    shr  $4, %cx
+    andl $0xffff0000, %ecx
+    shr  $4, %ecx
     movw %cx, seg
     call read_sector
+    movl BytesPerCluster, %ecx
+    addl %ecx, -4(%bp)
     movw $2, %ax
     xorw %dx, %dx
     mulw -6(%bp)
@@ -285,16 +300,20 @@ read_fat:
     movw 0x9000(%bx), %ax
     cmpw $0xfff8, %ax
     jb   2b
+    movw %bp, %sp
     popw %bp
     ret
 
 read_sector:
-    movb $0x42, %ah             # 读磁盘功能号
+    pushw %bp
+    movw %sp, %bp
+    movb $0x42, %ah             # Read disk
     movb DriverNumber, %dl
     movw $info_packet, %si
     int  $0x13
     cmp  $0x00, %ah
     jne  load_error
+    popw %bp
     ret
 
 info_packet:
@@ -316,6 +335,7 @@ RootDirStartSector:     .int    0x00000000
 DataStartSector:        .int    0x00000000
 SectorsPerCluster:      .byte   0x20
 BytesPerSector:         .word   0x0200
+BytesPerCluster:        .int    0x00004000
 DriverNumber:           .byte   0x00
 KernelFileName:         .ascii  "KERNEL  SYS"
 
@@ -326,8 +346,8 @@ KernelFileName:         .ascii  "KERNEL  SYS"
     movw  %ax, %fs
     movw  %ax, %gs
     movw  %ax, %ss
-    movl  $0x7e00, %esp
-    movl  %esp, %ebp
+    movl  $0x7e00, %ebp
+    movl  %ebp, %esp
     call  0x20000
 
 loop:
