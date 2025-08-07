@@ -11,7 +11,7 @@ VPATH = src
 
 bootloaderSrc = boot.s start.s
 libKernelSrc_c = color.c console.c \
-                 display.c div64.c \
+                 display.c \
                  font.c \
                  interrupt.c io.c \
                  keyboard.c \
