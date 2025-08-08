@@ -3,11 +3,12 @@ TARGET = i686-elf
 AS = $(TARGET)-as
 ASFLAGS =
 CC = $(TARGET)-gcc
-CFLAGS = -Wall -Wextra -std=c11 -ffreestanding -fno-builtin -fno-pic -fno-stack-protector -Isrc/libkernel
+CFLAGS = -Wall -Wextra -std=c11 -ffreestanding -fno-builtin -fno-pic -fno-stack-protector
 LD = $(TARGET)-ld
 LDFLAGS = -nostdlib
 
 VPATH = src
+INCPATH = -I inc
 
 bootloaderSrc = boot.s start.s
 libKernelSrc_c = color.c console.c \
@@ -39,11 +40,11 @@ $(bootloaderObj) $(libKernelObj_s): build/%.o: %.s
 
 $(libKernelObj_c): build/%.o: %.c
 	@echo -e "Building $@"
-	@$(CC) -c $(CFLAGS) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(INCPATH) -o $@ $<
 
 build/main.o: main.c
 	@echo -e "Building $@"
-	@$(CC) -c $(CFLAGS) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(INCPATH) -o $@ $<
 
 boot.bin: build/bootloader/boot.o
 	@echo -e "Linking $@"

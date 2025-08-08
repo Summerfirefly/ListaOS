@@ -3,9 +3,9 @@
 
 typedef struct rgb_color
 {
-	unsigned char R;
-	unsigned char G;
-	unsigned char B;
+    unsigned char R;
+    unsigned char G;
+    unsigned char B;
 } RGB;
 
 #define COLOR_BLACK (Colors[0])

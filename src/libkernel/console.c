@@ -3,8 +3,8 @@
 #include "font.h"
 #include "memory.h"
 
-int row = 0;
-int col = 0;
+unsigned int row = 0;
+unsigned int col = 0;
 int cursorState = 0;
 
 unsigned char *consoleBuffer = (unsigned char *)CONSOLE_BUFFER_ADDR;

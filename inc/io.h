@@ -13,8 +13,8 @@
 
 typedef struct idt_desc
 {
-	unsigned short size;
-	unsigned int addr;
+    unsigned short size;
+    unsigned int addr;
 }__attribute__((packed)) IDT_DESC;
  
 void _cli(void);
