@@ -82,7 +82,8 @@ no_remainder:
     movw %ax, %es
     movw VBEModeInfoAddr, %di
     movw $0x4f01, %ax
-    movw $0x0118, %cx
+    # movw $0x0118, %cx
+    movw $0x0195, %cx
     int  $0x10
 
     # Get All Video Mode
@@ -101,14 +102,17 @@ no_remainder:
 2:  movw $0x4f01, %ax
     movw (%ebx), %cx
     cmp  $0xffff, %cx
-    je   2f
+    je   set_video_mode
     int  $0x10
     addw $0x0002, %bx
     addw $0x0100, %di
     jmp  2b
 
-    #Set Video Mode 0x118(1024x768 True Color)
-2:  movw $0x4118, %bx
+set_video_mode:
+    # Set Video Mode 0x118(1024x768 True Color)
+    # movw $0x4118, %bx
+    # Set Video Mode 0x195(1600x900 True Color)
+    movw $0x4195, %bx
     movw $0x4f02, %ax
     int  $0x10
     cmp  $0x00, %ah

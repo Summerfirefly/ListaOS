@@ -22,15 +22,24 @@ VBE_MODE_INFO *vbeInfo = (VBE_MODE_INFO *)VBE_INFO_ADDR;
 
 void display_init(void)
 {
+    screen_clear();
 }
 
 
 inline void draw_pixel(int x, int y, RGB rgb)
 {
-	unsigned char *pixelAddr = (unsigned char *)((X_RES * y + x) * BYTE_PER_PIXEL + vbeInfo->physBasePtr);
-	pixelAddr[0] = rgb.B;
-	pixelAddr[1] = rgb.G;
-	pixelAddr[2] = rgb.R;
+    unsigned char *pixelAddr = (unsigned char *)((X_RES * y + x) * BYTE_PER_PIXEL + vbeInfo->physBasePtr);
+    pixelAddr[0] = rgb.B;
+    pixelAddr[1] = rgb.G;
+    pixelAddr[2] = rgb.R;
+}
+
+
+void get_display_info(DISPLAY_INFO *display)
+{
+    display->width = X_RES;
+    display->height = Y_RES;
+    display->bytePerPixel = BYTE_PER_PIXEL;
 }
 
 
@@ -40,5 +49,5 @@ inline void draw_pixel(int x, int y, RGB rgb)
  */
 void screen_clear(void)
 {
-	memset((void *)vbeInfo->physBasePtr, 0x00, X_RES * Y_RES * BYTE_PER_PIXEL);
+    memset((void *)vbeInfo->physBasePtr, 0x00, X_RES * Y_RES * BYTE_PER_PIXEL);
 }
