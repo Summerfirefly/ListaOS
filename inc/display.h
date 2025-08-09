@@ -9,8 +9,8 @@
  * Licenced under LGPLv3
  *
  */
-#ifndef _DISPLAY_H
-#define _DISPLAY_H
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
 #include "color.h"
 

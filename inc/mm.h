@@ -1,5 +1,5 @@
-#ifndef _MM_H
-#define _MM_H
+#ifndef MM_H
+#define MM_H
 
 #define MAX_PAGE_NUM 0x100000
 #define MM_BASE_PAGE 0x100

@@ -22,13 +22,12 @@ void *memset(void *s, int c, unsigned int n)
 {
 	__asm__(
 		"memset_start:\n\t"
-		"movb %%al, (%%ebx)\n\t"
-		"incl %%ebx\n\t"
-		"decl %%ecx\n\t"
-		"jg   memset_start"
+		"cld\n\t"
+		"rep\n\t"
+		"stosb\n\t"
 		:
-		: "a"(c), "b"(s), "c"(n)
-		: );
+		: "a"(c), "D"(s), "c"(n)
+		: "memory");
 
 	return s;
 }

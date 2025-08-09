@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef _INTERRUPT_H
-#define _INTERRUPT_H
+#ifndef INTERRUPT_H
+#define INTERRUPT_H
 
 #define M_PIC 0x20
 #define M_DAT 0x21

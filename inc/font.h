@@ -4,4 +4,9 @@
 * 字符数量: 128
 * 扫描方式: 水平扫描,MSB
 *******************************************************************************/
+#ifndef FONT_H
+#define FONT_H
+
 extern unsigned char fontData[];
+
+#endif

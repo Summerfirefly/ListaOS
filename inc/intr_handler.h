@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef _INTR_HANDLER_H
-#define _INTR_HANDLER_H
+#ifndef INTR_HANDLER_H
+#define INTR_HANDLER_H
 
 void irq_0x20_handler(void);
 void irq_0x21_handler(void);

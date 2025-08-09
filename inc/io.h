@@ -9,14 +9,15 @@
  * Licenced under LGPLv3
  *
  */
-
+#ifndef IO_H
+#define IO_H
 
 typedef struct idt_desc
 {
     unsigned short size;
     unsigned int addr;
 }__attribute__((packed)) IDT_DESC;
- 
+
 void _cli(void);
 void _sti(void);
 
@@ -25,3 +26,5 @@ void _load_idt(IDT_DESC idtDescData);
 void _outb(unsigned short port, unsigned char data);
 
 void _enable_paging(int dir_addr);
+
+#endif
