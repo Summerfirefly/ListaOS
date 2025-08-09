@@ -50,7 +50,7 @@ no_remainder:
     movl %eax, BytesPerCluster
 
     # Find kernel.sys in root directory
-    movw $KernelFileName, %si
+    pushw $KernelFileName
     call find_file
     cmpw $0x0000, %ax
     je   file_missed_error
@@ -60,12 +60,6 @@ no_remainder:
     movw $0x0000, %ax
     movw $0x2000, %dx
     call load_file
-
-    movw %bp, %di
-    movw $msgKernelLoaded, %ax
-    movw %ax, %bp
-    call print_msg
-    movw %di, %bp
 
     movb $0x03, %al
     movb $0x00, %ah
@@ -172,74 +166,68 @@ fin:
 load_error:
     movw $msgLoadError, %ax
     movw %ax, %bp
-    call print_msg
-    jmp  fin
+    jmp  print_error
 
 file_missed_error:
     movw $msgFileMissed, %ax
     movw %ax, %bp
-    call print_msg
-    jmp  fin
+    jmp  print_error
 
-print_msg:
+print_error:
     movw $0x000f, %bx
     movw $0x1301, %ax
-    movw $0x000e, %cx
+    movw $0x000c, %cx
     movb $0x00, %dl
     movb $0x00, %dh
     int  $0x10
-    ret
+    jmp  fin
 
 # Function find_file
 #   Find file in FAT16 filesystem root directory
 #   FAT table will be loaded from 0x9000
 #   Params:
-#       %si: filename
+#       4(%bp): pointer to filename
 #   Return:
 #       %ax: Memory address of directory entry in root directory
 find_file:
     pushw %bp
     movw %sp, %bp
     subw $2, %sp
+    pushw %si
+    pushw %di
     movw $0x9000, off
     movw $0x0000, seg
     movw RootEntrySectorCount, %cx
     movw %cx, -2(%bp)
     movw RootDirStartSector, %ax
     movw %ax, start_sector
-    movw %si, %bx
+    movw $1, sector_count       # Load 1 sector of root directory table
 find_start:
-    # Load 1 sector of root directory table
-    movw $1, sector_count
     call read_sector
     movw off, %di
     movw BytesPerSector, %dx
-2:  movw %bx, %si
-    movb $0x0b, %ch
+2:  movw 4(%bp), %si
+    movw $0x000b, %cx
     cld
-1:  movb (%di), %ah
-    lodsb
-    cmp  %ah, %al
+    repe cmpsb
     jne  next_file              # Compare filename, if different, jump to next file
-    inc  %di
-    dec  %ch
-    jnz  1b
     andw $0xfff0, %di
     movw %di, %ax
-    movw %bp, %sp
-    popw %bp
-    ret
+    jmp  end_find_file
 next_file:
     andw $0xfff0, %di
     addw $0x0020, %di
     subw $0x0020, %dx
     jnz  2b
     decw -2(%bp)                # File not found in loaded sector
-    jz   find_not_found         # All root entry table sectors have been checked, file not found
+    jz   file_not_found         # All root entry table sectors have been checked, file not found
     addw $0x0001, start_sector
     jmp  find_start             # Start to search next sector of root entry table
-find_not_found:
+file_not_found:
     movw $0x0000, %ax
+end_find_file:
+    popw %di
+    popw %si
     movw %bp, %sp
     popw %bp
     ret
@@ -311,37 +299,16 @@ read_fat:
 read_sector:
     pushw %bp
     movw %sp, %bp
+    pushw %si
     movb $0x42, %ah             # Read disk
     movb DriverNumber, %dl
     movw $info_packet, %si
     int  $0x13
     cmp  $0x00, %ah
     jne  load_error
+    popw %si
     popw %bp
     ret
-
-info_packet:
-size:           .byte 0x10          # size of packet
-reverse:        .byte 0x00          # not used
-sector_count:   .word 0x0001        # amount to read
-off:            .word 0x0000        # memary address offset
-seg:            .word 0x1000        # memary address segment
-start_sector:   .int  0x00000000
-                .int  0x00000000
-
-msgLoadError:           .ascii  "Load error!   "
-msgFileMissed:          .ascii  "File missed!  "
-msgStartInit:           .ascii  "Init started! "
-msgKernelLoaded:        .ascii  "Kernel loaded!"
-FAT1StartSector:        .word   0x0000
-RootEntrySectorCount:   .word   0x0000
-RootDirStartSector:     .int    0x00000000
-DataStartSector:        .int    0x00000000
-SectorsPerCluster:      .byte   0x20
-BytesPerSector:         .word   0x0200
-BytesPerCluster:        .int    0x00004000
-DriverNumber:           .byte   0x00
-KernelFileName:         .ascii  "KERNEL  SYS"
 
 .code32
 3:	movw  $PROT_MODE_DSEG, %ax
@@ -357,8 +324,30 @@ KernelFileName:         .ascii  "KERNEL  SYS"
 loop:
     jmp loop
 
+.data
 VBEModeInfoAddr:    .word 0x7e00
 SVGAInfoAddr:       .word 0xf000
+
+info_packet:
+size:           .byte 0x10          # size of packet
+reverse:        .byte 0x00          # not used
+sector_count:   .word 0x0001        # amount to read
+off:            .word 0x0000        # memary address offset
+seg:            .word 0x1000        # memary address segment
+start_sector:   .int  0x00000000
+                .int  0x00000000
+
+msgLoadError:           .ascii  "Load error! "
+msgFileMissed:          .ascii  "File missed!"
+FAT1StartSector:        .word   0x0000
+RootEntrySectorCount:   .word   0x0000
+RootDirStartSector:     .int    0x00000000
+DataStartSector:        .int    0x00000000
+SectorsPerCluster:      .byte   0x20
+BytesPerSector:         .word   0x0200
+BytesPerCluster:        .int    0x00004000
+DriverNumber:           .byte   0x00
+KernelFileName:         .ascii  "KERNEL  SYS"
 
 #### GDT
     .align 8

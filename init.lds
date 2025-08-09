@@ -9,5 +9,9 @@ SECTIONS
         *(.text)
     }
 
+    .data : {
+        *(.data)
+    }
+
     _init_end = .;
 }
