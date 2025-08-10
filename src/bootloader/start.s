@@ -4,6 +4,7 @@
 .globl _start
 
 .section .text
+
 _start:
 .code16
     movb %dl, DriverNumber
@@ -78,8 +79,7 @@ no_remainder:
     movw %ax, %es
     movw VBEModeInfoAddr, %di
     movw $0x4f01, %ax
-    # movw $0x0118, %cx
-    movw $0x0195, %cx
+    movw VBEModeCode, %cx
     int  $0x10
 
     # Get All Video Mode
@@ -105,10 +105,8 @@ no_remainder:
     jmp  2b
 
 set_video_mode:
-    # Set Video Mode 0x118(1024x768 True Color)
-    # movw $0x4118, %bx
-    # Set Video Mode 0x195(1600x900 True Color)
-    movw $0x4195, %bx
+    movw VBEModeCode, %bx
+    addw $0x4000, %bx
     movw $0x4f02, %ax
     int  $0x10
     cmp  $0x00, %ah
@@ -327,6 +325,13 @@ loop:
     jmp loop
 
 .section .data
+
+# For QEMU 10.0
+# 0x0118 -> 1024x768, 24-bits Direct Colour
+# 0x0192 -> 1920x1080, 32-bits Direct Colour
+# 0x0195 -> 1600x900, 32-bits Direct Colour
+# 0x0198 -> 2560x1440, 32-bits Direct Colour
+VBEModeCode:        .word 0x0198
 VBEModeInfoAddr:    .word 0x7e00
 SVGAInfoAddr:       .word 0xf000
 MemMapAddr:         .word 0xe000
