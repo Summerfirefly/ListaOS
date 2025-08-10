@@ -2,11 +2,15 @@
 #include "stdio.h"
 #include "io.h"
 
-static PHYS_MEM_PAGE *physMemMap = (PHYS_MEM_PAGE *) 0x100000;
+static PHYS_MEM_PAGE *physMemMap = (PHYS_MEM_PAGE *) 0x800000;
 static unsigned int pageNum = 0;
 static int mmInitialed = 0;
 
-//unsigned int *paging_dir = (unsigned int *) 0x11000;
+#define PAGE_DIR_BASE 0x1f0000
+#define PAGE_TABLE_BASE 0x200000
+
+uint32_t *paging_dir = (uint32_t *)PAGE_DIR_BASE;
+uint32_t *paging_table = (uint32_t *)PAGE_TABLE_BASE;
 
 
 //void *alloc_4k_phys(unsigned int num)
@@ -72,31 +76,17 @@ void mm_init(void)
     mmInitialed = 1;
 }
 
-/*
-void _set_paging()
+
+void set_paging(void)
 {
-    int i = 0;
-    for (i = 0; i < 1024; ++i)
+    for (int i = 0; i < 1024; ++i)
     {
-        ((unsigned int *)(0x13000))[i] = (unsigned int) ((0x1000 * i) | 4 | 2 | 1);
+        paging_dir[i] = (uint32_t)(paging_table + i * 1024) | 0x7;
+        for (int j = 0; j < 1024; ++j)
+        {
+            (paging_table + i * 1024)[j] = (uint32_t)((0x1000 * (i * 1024 + j)) | 0x7);
+        }
     }
 
-    for (i = 0xb8; i <= 0xc0; ++i)
-    {
-        ((unsigned int *)(0x14000))[i - 0xb8] = (unsigned int)((0x1000 * i) | 3);
-    }
-
-    paging_dir[0] = 0x13000 | 3;
-    paging_dir[1] = 0x14000 | 3;
-    enable_paging(0x11000);
-    printf("CR0 = 0x%X, CR3 = 0x%X\n", _get_cr0(), _get_cr3());
-
-    char *test_ptr = (char *)0x400000;
-    char *log_str = "Paging Enabled!";
-    for (i = 0; log_str[i] != '\0'; ++i)
-    {
-        *(test_ptr++) = log_str[i];
-        *(test_ptr++) = 0x2;
-    }
+    enable_paging(PAGE_DIR_BASE);
 }
-*/

@@ -2,6 +2,7 @@
 #include "console.h"
 #include "display.h"
 #include "interrupt.h"
+#include "io.h"
 #include "keyboard.h"
 #include "mm.h"
 #include "pci.h"
@@ -19,7 +20,9 @@
  *  64KB  0x00020000-0x00030000  Kernel
  *  64KB  0x00050000-0x00060000  Console Text Buffer
  *  32KB  0x000b8000-0x000c0000  Text Mode VRAM
- * 0.39%  0x00100000-0x????????  RAM Map
+ *   4KB  0x001f0000-0x00200000  Paging Directory
+ *   4MB  0x00200000-0x00600000  Paging Table
+ * 0.39%  0x00800000-0x????????  RAM Map
  */
 
 
@@ -33,6 +36,7 @@ int main(void)
     pic_init();
     timer_init();
     mm_init();
+    set_paging();
     pci_init();
     printf("Boot completed!\n");
     printf("%d-bits Mode\n\n", sizeof(unsigned int *) * 8);

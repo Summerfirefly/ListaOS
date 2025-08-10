@@ -20,5 +20,6 @@ typedef struct phys_mem_page
 } PHYS_MEM_PAGE;
 
 void mm_init(void);
+void set_paging(void);
 
 #endif
