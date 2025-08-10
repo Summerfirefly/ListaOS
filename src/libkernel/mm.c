@@ -18,7 +18,10 @@ unsigned long long get_free_page_num(void)
 
     for (unsigned long long i = 0; i < pageNum; ++i)
     {
-        if (physMemMap[i].state == 0) freeNum++;
+        if (physMemMap[i].state == 0)
+        {
+            freeNum++;
+        }
     }
 
     return freeNum;
@@ -34,6 +37,7 @@ void mm_init(void)
 
     for (int i = 0; i < *infoNum; ++i)
     {
+        printf("%llu bytes from %llx with type %u\n", memInfo[i].size, memInfo[i].addr, memInfo[i].type);
         if (memInfo[i].type == 1)
         {
             if (memInfo[i].addr + memInfo[i].size < 0x100000) continue;
@@ -84,7 +88,7 @@ void _set_paging()
 
     paging_dir[0] = 0x13000 | 3;
     paging_dir[1] = 0x14000 | 3;
-    _enable_paging(0x11000);
+    enable_paging(0x11000);
     printf("CR0 = 0x%X, CR3 = 0x%X\n", _get_cr0(), _get_cr3());
 
     char *test_ptr = (char *)0x400000;

@@ -17,6 +17,7 @@ libKernelSrc_c = color.c console.c \
                  interrupt.c io.c \
                  keyboard.c \
                  memory.c mm.c \
+                 pci.c \
                  stdio.c \
                  timer.c
 libkernelSrc_s = intr_handler.s

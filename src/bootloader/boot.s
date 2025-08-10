@@ -76,13 +76,3 @@ msgCallInit:    .ascii  "Call  init!"
 DriverNumber:   .byte   0x00
 
 .org 446
-
-gpt_protective:
-.word 0x0000
-.word 0x0002
-.int  0xffffffee
-.int  0x00000001
-.int  0xffffffff
-
-.org 510
-.byte 0x55, 0xaa

@@ -4,6 +4,7 @@
 #include "interrupt.h"
 #include "keyboard.h"
 #include "mm.h"
+#include "pci.h"
 #include "timer.h"
 
 /*
@@ -32,6 +33,7 @@ int main(void)
     pic_init();
     timer_init();
     mm_init();
+    pci_init();
     printf("Boot completed!\n");
     printf("%d-bits Mode\n\n", sizeof(unsigned int *) * 8);
 

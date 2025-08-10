@@ -4,11 +4,13 @@
 #define MAX_PAGE_NUM 0x100000
 #define MM_BASE_PAGE 0x100
 
+#include <stdint.h>
+
 typedef struct mem_info
 {
-    unsigned long long addr;
-    unsigned long long size;
-    unsigned int type;
+    uint64_t addr;
+    uint64_t size;
+    uint32_t type;
 }__attribute__((packed)) MEMINFO;
 
 typedef struct phys_mem_page

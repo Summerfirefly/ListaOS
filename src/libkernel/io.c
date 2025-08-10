@@ -12,46 +12,78 @@
 
 #include "io.h"
 
-void _cli(void)
+void cli(void)
 {
-	__asm__("cli");
+    __asm__("cli");
 }
 
-void _sti(void)
+void sti(void)
 {
-	__asm__("sti");
+    __asm__("sti");
 }
 
-unsigned char _inb(unsigned short port)
+uint8_t inb(uint16_t port)
 {
-	unsigned char retData = 0;
-    __asm__("inb   %1, %0"
-			: "=a"(retData)
-			: "d"(port));
-	return retData;
+    uint8_t retData = 0;
+    __asm__("inb %1, %0"
+	        : "=a"(retData)
+	        : "d"(port));
+    return retData;
 }
 
-void _outb(unsigned short port, unsigned char data)
+uint16_t inw(uint16_t port)
 {
-    __asm__("outb  %1, %0\n\t"
-			:
-			: "d"(port), "a"(data));
+    uint16_t retData = 0;
+    __asm__("inw %1, %0"
+            : "=a"(retData)
+            : "d"(port));
+    return retData;
 }
 
-void _load_idt(IDT_DESC idtDescData)
+uint32_t inl(uint16_t port)
 {
-	__asm__("lidt %0"
-	        :
-			: "m"(idtDescData)
-			:);
+    uint32_t retData = 0;
+    __asm__("inl %1, %0"
+            : "=a"(retData)
+            : "d"(port));
+    return retData;
 }
 
-void _enable_paging(int dir_addr)
+void outb(uint16_t port, uint8_t data)
 {
-    __asm__("movl  %0, %%cr3\n\t"
-            "movl  %%cr0, %%eax\n\t"
-            "orl   $0x80000000, %%eax\n\t"
-            "movl  %%eax, %%cr0\n\t"
-			:
-			: "a"(dir_addr));
+    __asm__("outb %1, %0\n\t"
+            :
+            : "d"(port), "a"(data));
+}
+
+void outw(uint16_t port, uint16_t data)
+{
+    __asm__("outw %1, %0\n\t"
+            :
+            : "d"(port), "a"(data));
+}
+
+void outl(uint16_t port, uint32_t data)
+{
+    __asm__("outl %1, %0\n\t"
+            :
+            : "d"(port), "a"(data));
+}
+
+void load_idt(IDT_DESC idtDescData)
+{
+    __asm__("lidt %0"
+            :
+            : "m"(idtDescData)
+            :);
+}
+
+void enable_paging(int dir_addr)
+{
+    __asm__("movl %0, %%cr3\n\t"
+            "movl %%cr0, %%eax\n\t"
+            "orl  $0x80000000, %%eax\n\t"
+            "movl %%eax, %%cr0\n\t"
+            :
+            : "a"(dir_addr));
 }

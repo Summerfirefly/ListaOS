@@ -2,6 +2,8 @@
 .set PROT_MODE_DSEG, 0x10
 
 .globl _start
+
+.section .text
 _start:
 .code16
     movb %dl, DriverNumber
@@ -132,25 +134,25 @@ continue:
 
     # Get Memory Info with INT15H-E820
     # Start At Addr 0xe000
-    movl $0, 0xe000
+    movw MemMapAddr, %bx
+    movl $0, (%bx)
+    leaw 4(%bx), %di
     xorl %ebx, %ebx
-    movw $0x0000, %ax
-    movw %ax, %es
-    movw $0xe004, %di
+    movw %bx, %es
 start_probe:
-    movw $0xe820, %ax
+    movl $0x0000e820, %eax
     movl $0x00000014, %ecx
     movl $0x534D4150, %edx
     int  $0x15
-    jnc  count
-    movl $0xffffffff, 0xe000
-    jmp finish_probe
-count:
+    jc   finish_probe
     addw $0x14, %di
-    incl 0xe000
+    incl MemMapLen
     cmpl $0x0, %ebx
     jnz start_probe
 finish_probe:
+    movw MemMapAddr, %bx
+    movl MemMapLen, %eax
+    movl %eax, (%bx)
 
     cli
     data32 addr32 lgdt gdtdesc
@@ -324,9 +326,11 @@ read_sector:
 loop:
     jmp loop
 
-.data
+.section .data
 VBEModeInfoAddr:    .word 0x7e00
 SVGAInfoAddr:       .word 0xf000
+MemMapAddr:         .word 0xe000
+MemMapLen:          .int  0x00000000
 
 info_packet:
 size:           .byte 0x10          # size of packet

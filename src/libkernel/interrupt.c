@@ -32,31 +32,31 @@ void idt_init(void)
     set_idt_gate(0x21, (unsigned int)irq_0x21_handler, 0x08, 0x8e);
     set_idt_gate(0x27, (unsigned int)irq_0x27_handler, 0x08, 0x8e);
 
-    _load_idt(idtDescData);
+    load_idt(idtDescData);
 }
 
 
 void pic_init(void)
 {
-    _outb(M_DAT, 0xff);
-    _outb(S_DAT, 0xff);
+    outb(M_DAT, 0xff);
+    outb(S_DAT, 0xff);
 
-    _outb(M_PIC, 0x11);  //ICW1
-    _outb(S_PIC, 0x11);  //ICW1
+    outb(M_PIC, 0x11);  //ICW1
+    outb(S_PIC, 0x11);  //ICW1
 
-    _outb(M_DAT, 0x20);  //ICW2, IRQ0~IRQ7 Interrupt 0x20~0x27
-    _outb(S_DAT, 0x28);  //ICW2, IRQ8~IRQ15 Interrupt 0x28~0x2f
+    outb(M_DAT, 0x20);  //ICW2, IRQ0~IRQ7 Interrupt 0x20~0x27
+    outb(S_DAT, 0x28);  //ICW2, IRQ8~IRQ15 Interrupt 0x28~0x2f
 
-    _outb(M_DAT, 0x04);  //ICW3, Connect IR2 to S-PIC
-    _outb(S_DAT, 0x02);
+    outb(M_DAT, 0x04);  //ICW3, Connect IR2 to S-PIC
+    outb(S_DAT, 0x02);
 
-    _outb(M_DAT, 0x01);  //ICW4, 80x86 Mode
-    _outb(S_DAT, 0x01);  //ICW4, 80x86 Mode
+    outb(M_DAT, 0x01);  //ICW4, 80x86 Mode
+    outb(S_DAT, 0x01);  //ICW4, 80x86 Mode
 
-    _outb(M_DAT, 0x7c);  //01111100 Enable keyboard interrupt and timer interrupt
-    _outb(S_DAT, 0xff);
+    outb(M_DAT, 0x7c);  //01111100 Enable keyboard interrupt and timer interrupt
+    outb(S_DAT, 0xff);
 
-    _sti();
+    sti();
 }
 
 void set_idt_gate(int intr_num, unsigned int handler_addr, unsigned char seg_sec, unsigned char flag)
@@ -70,19 +70,19 @@ void set_idt_gate(int intr_num, unsigned int handler_addr, unsigned char seg_sec
 
 void irq_0x20(void)
 {
-    _cli();
-    _outb(M_PIC, 0x60);
+    cli();
+    outb(M_PIC, 0x60);
     ++count;
-    _sti();
+    sti();
 }
 
 // 0x21 ~ 0xff user
 void irq_0x21(void)
 {
-    _cli();
-    _outb(M_PIC, 0x61);
-    keyboard_buffer_in(_inb(0x60));
-    _sti();
+    cli();
+    outb(M_PIC, 0x61);
+    keyboard_buffer_in(inb(0x60));
+    sti();
 }
 
 void irq_0x27(void)
