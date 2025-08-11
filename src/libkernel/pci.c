@@ -33,8 +33,9 @@ void pci_init(void)
                     uint32_t reg3 = pci_read_config(i, j, k, 3);
                     uint8_t classCode = reg2 >> 24;
                     uint8_t subclass = reg2 >> 16 & 0xff;
+                    uint8_t prog = reg2 >> 8 & 0xff;
                     printf("PCI Bus %d, Device %d, Function %d\n", i, j, k);
-                    printf("\tPCI Device ID: 0x%X, Vendor ID: 0x%X, ", reg0 >> 16, reg0 & 0xffff);
+                    printf("\tPCI Device ID: 0x%X, Vendor ID: 0x%X, Prog If: 0x%X, ", reg0 >> 16, reg0 & 0xffff, prog);
                     printf("Header Type: 0x%X, ", reg3 >> 16 & 0xff);
                     printf("Class Code: 0x%X, Subclass: 0x%X\n", classCode, subclass);
                     count++;

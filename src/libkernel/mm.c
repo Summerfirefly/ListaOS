@@ -1,13 +1,17 @@
 #include "mm.h"
+
+#include <stdbool.h>
 #include "stdio.h"
 #include "io.h"
 
-static PHYS_MEM_PAGE *physMemMap = (PHYS_MEM_PAGE *) 0x800000;
-static unsigned int pageNum = 0;
-static int mmInitialed = 0;
-
 #define PAGE_DIR_BASE 0x1f0000
 #define PAGE_TABLE_BASE 0x200000
+
+#define PHY_MEM_BITMAP_BASE 0x800000
+
+uint32_t *physMemBitmap = (uint32_t *)PHY_MEM_BITMAP_BASE; // RAM pages bitmap, set bit for free page, clear for used
+uint32_t physMemBitmapSize = 0;
+bool mmInitialed = false;
 
 uint32_t *paging_dir = (uint32_t *)PAGE_DIR_BASE;
 uint32_t *paging_table = (uint32_t *)PAGE_TABLE_BASE;
@@ -20,11 +24,17 @@ unsigned long long get_free_page_num(void)
 {
     unsigned long long freeNum = 0;
 
-    for (unsigned long long i = 0; i < pageNum; ++i)
+    for (uint32_t i = 0; i < physMemBitmapSize; ++i)
     {
-        if (physMemMap[i].state == 0)
+        uint32_t tmp = physMemBitmap[i];
+        for (int j = 0; j < 32; ++j)
         {
-            freeNum++;
+            if ((tmp & 1) == 1)
+            {
+                freeNum++;
+            }
+
+            tmp = tmp >> 1;
         }
     }
 
@@ -34,7 +44,10 @@ unsigned long long get_free_page_num(void)
 
 void mm_init(void)
 {
-    if (mmInitialed) return;
+    if (mmInitialed)
+    {
+        return;
+    }
 
     int *infoNum = (int *)0xe000;
     MEMINFO *memInfo = (MEMINFO *)0xe004;
@@ -42,38 +55,42 @@ void mm_init(void)
     for (int i = 0; i < *infoNum; ++i)
     {
         printf("%llu bytes from %llx with type %u\n", memInfo[i].size, memInfo[i].addr, memInfo[i].type);
-        if (memInfo[i].type == 1)
+
+        uint64_t addr = memInfo[i].addr;
+        uint64_t size = (int64_t)memInfo[i].size;
+        if ((addr & ~(0xfff)) != addr)
         {
-            if (memInfo[i].addr + memInfo[i].size < 0x100000) continue;
-            if (memInfo[i].addr < 0x100000)
+            // Start addr is not 4K aligned, discard
+            uint64_t newAddr = (addr & 0xfff) + 0x1000;
+            if (newAddr - addr >= size)
             {
-                memInfo[i].size -= 0x100000 - memInfo[i].addr;
-                memInfo[i].addr = 0x100000;
-                if (memInfo[i].size == 0) continue;
+                continue;
             }
 
-            memInfo[i].size -= (memInfo[i].addr + 0xfff) / 0x1000 * 0x1000 - memInfo[i].addr;
-            memInfo[i].size = memInfo[i].size / 0x1000 * 0x1000;
+            size -= newAddr - addr;
+            addr = newAddr;
+        }
 
-            unsigned int temp = pageNum;
-            pageNum += memInfo[i].size / 0x1000;
-            while (temp < pageNum)
+        while (size >= 0x1000) // Only use 4K aligned memory
+        {
+            uint32_t pageIndex = addr / 0x1000;
+            uint32_t mapIndex = pageIndex / 32;
+            uint8_t bitPos = pageIndex % 32;
+
+            while (mapIndex >= physMemBitmapSize)
             {
-                physMemMap[temp].addr = memInfo[i].addr;
-                physMemMap[temp].state = 0;
-                memInfo[i].addr += 0x1000;
-                ++temp;
+                physMemBitmap[physMemBitmapSize++] = 0;
             }
+
+            uint32_t mask = memInfo[i].type == 1 ? 1 << bitPos : 0;
+            physMemBitmap[mapIndex] |= mask;
+            addr += 0x1000;
+            size -= 0x1000;
         }
     }
 
-    for (unsigned int i = 0; i < (pageNum * sizeof(PHYS_MEM_PAGE) + 0xfff) / 0x1000; ++i)
-    {
-        physMemMap[i].state = 0xffffffff;
-    }
-
     printf("Free RAM: %llu Bytes\n\n", get_free_page_num() * 0x1000);
-    mmInitialed = 1;
+    mmInitialed = true;
 }
 
 
