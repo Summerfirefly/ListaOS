@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 project(ListaOS)
 enable_language(ASM C)
 
@@ -10,5 +12,6 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -std=c11 -ffreestanding -fno-builtin -fno-pic -
 set(CMAKE_AR "i686-elf-ar")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
