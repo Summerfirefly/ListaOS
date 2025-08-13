@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.20)
+
+add_subdirectory(bootloader)
+add_subdirectory(libkernel)
+
+add_executable(kernel.sys
+    main.c)
+target_include_directories(kernel.sys
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/inc)
+target_link_libraries(kernel.sys
+    PRIVATE
+        kernel)
+target_link_options(kernel.sys
+    PRIVATE
+        -nostdlib
+        -ffreestanding
+        -T ${CMAKE_CURRENT_SOURCE_DIR}/kernel.lds)
