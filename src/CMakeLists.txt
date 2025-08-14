@@ -16,3 +16,8 @@ target_link_options(kernel.sys
         -nostdlib
         -ffreestanding
         -T ${CMAKE_CURRENT_SOURCE_DIR}/kernel.lds)
+
+add_custom_target(image
+    COMMAND ${CMAKE_SOURCE_DIR}/makeimg.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_target_properties(image PROPERTIES EXCLUDE_FROM_ALL ON)

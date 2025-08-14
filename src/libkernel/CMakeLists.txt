@@ -1,15 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
+file(GLOB LIBKERNEL_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.s")
+
 add_library(kernel STATIC
-    color.c console.c
-    display.c
-    font.c
-    interrupt.c intr_handler.s io.c
-    keyboard.c
-    memory.c mm.c
-    pci.c
-    stdio.c
-    timer.c)
+    ${LIBKERNEL_SOURCE})
 target_link_libraries(kernel
     PRIVATE
         gcc)
