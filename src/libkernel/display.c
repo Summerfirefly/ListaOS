@@ -11,7 +11,8 @@
  */
 
 #include "display.h"
-#include "memory.h"
+
+#include "string.h"
 
 #define X_RES (vbeInfo->xResolution)
 #define Y_RES (vbeInfo->yResolution)

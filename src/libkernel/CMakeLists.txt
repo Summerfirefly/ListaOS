@@ -11,4 +11,6 @@ target_link_libraries(kernel
         gcc)
 target_include_directories(kernel
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/inc)
+        ${CMAKE_SOURCE_DIR}/inc
+        ${CMAKE_SOURCE_DIR}/inc/kernel
+        ${CMAKE_SOURCE_DIR}/inc/kernel/internal)

@@ -10,10 +10,13 @@
  *
  */
 
+#include "stdio.h"
+
 #include <stdarg.h>
 #include <stdbool.h>
-#include "stdio.h"
+#include <stdint.h>
 #include "console.h"
+#include "string.h"
 
 
 /*Private functions*/
@@ -28,7 +31,7 @@ char *_utoa(unsigned long long num);
 int putc(char ch)
 {
     print_char(ch);
-    
+
     return (int) ch;
 }
 
@@ -43,7 +46,7 @@ int puts(const char *str)
         putc(*str++);
         ++len;
     }
-    
+
     return len;
 }
 
@@ -161,15 +164,15 @@ int sprintf(char *str, const char *format, ...)
     va_start(vap, format);
 
     char *current = str;
-    
+
     while (*format != '\0')
     {
         while (*format != '%' && *format != '\0')
             *current++ = *format++;
-        
+
         if (*format == '\0')
             break;
-        
+
         char sign = *(++format);
         char *temp = NULL;
         switch (sign)
@@ -257,10 +260,10 @@ int sprintf(char *str, const char *format, ...)
                 break;
             default:;
         }
-        
+
         ++format;
     }
-    
+
     *current = '\0';
     va_end(vap);
     return current - str;
@@ -274,10 +277,10 @@ int sprintf(char *str, const char *format, ...)
  *                                 *
  ***********************************/
 
-
+// For now this is just a simple float to string function for debug use
 char *_ftoa(double num, int n)
 {
-	int i = 0;
+    int i = 0;
     static char str[256] = {'\0'};
 
     if (num < 0)
@@ -286,37 +289,50 @@ char *_ftoa(double num, int n)
         num = -num;
     }
 
-	if (num <= 0xffffffffffffffff)
-	{
-		unsigned long long intPart = (unsigned long long)num;
-		double floatPart = num - intPart;
-		
-		char *tempStr = _utoa(intPart);
-		for (int j = 0; tempStr[j] != '\0'; ++j)
-		{
-			str[i++] = tempStr[j];
-		}
-		
-		str[i++] = '.';
-		
-		unsigned long long tempInt = 1;
-		for (int j = 0; j < n; ++j)
-		{
-			tempInt *= 10;
-		}
-		
-		tempStr = _utoa((unsigned long long)(floatPart * tempInt));
-		for (int j = 0; tempStr[j] != '\0'; ++j)
-		{
-			str[i++] = tempStr[j];
-		}
-	}
-	else
-	{
-	}
-	
-	str[i] = '\0';
-	
+    int c = 0;
+    while (num > UINT64_MAX)
+    {
+        num /= 10;
+        c++;
+    }
+
+    if (c != 0)
+    {
+        while (num > 10)
+        {
+            num /= 10;
+            c++;
+        }
+    }
+
+    unsigned long long intPart = (unsigned long long)num;
+    double floatPart = num - intPart;
+
+    char *tempStr = _utoa(intPart);
+    strcpy(str + i, tempStr);
+    i += strlen(tempStr);
+
+    str[i++] = '.';
+
+    unsigned long long tempInt = 1;
+    for (int j = 0; j < n; ++j)
+    {
+        tempInt *= 10;
+    }
+
+    tempStr = _utoa((unsigned long long)(floatPart * tempInt));
+    strcpy(str + i, tempStr);
+    i += strlen(tempStr);
+
+    if (c > 0)
+    {
+        tempStr = _itoa(c);
+        strcpy(str + i, tempStr);
+        i += strlen(tempStr);
+    }
+
+    str[i] = '\0';
+
     return str;
 }
 
@@ -330,27 +346,27 @@ char *_itoa(long long num)
     int i = 0;
     int j = 0;
     static char str[30] = {'\0'};
-    
+
     if (num < 0)
     {
         str[i++] = '-';
         num = -num;
     }
-    
+
     char temp[30] = {'\0'};
     while (num != 0)
     {
         temp[j++] = (char)(num % 10 + '0');
         num /= 10;
     }
-    
+
     while (j > 0)
     {
         str[i++] = temp[--j];
     }
-    
+
     str[i] = '\0';
-    
+
     return str;
 }
 
@@ -372,7 +388,7 @@ char *_itoh(unsigned long long num, bool uppercase)
 
         num >>= 4;
     }
-    
+
     while (temp[i - 1] == '0' && i > 1)
     {
         temp[--i] = '\0';
@@ -427,7 +443,7 @@ char *_utoa(unsigned long long num)
     int i = 0;
     int j = 0;
     static char str[30] = {'\0'};
-    
+
     char temp[30] = {'\0'};
     while (num != 0)
     {
@@ -439,7 +455,7 @@ char *_utoa(unsigned long long num)
     {
         str[i++] = temp[--j];
     }
-    
+
     str[i] = '\0';
     return str;
 }

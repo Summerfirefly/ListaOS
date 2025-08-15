@@ -11,6 +11,5 @@ typedef struct mem_info
 }__attribute__((packed)) MEMINFO;
 
 void mm_init(void);
-void set_paging(void);
 
 #endif

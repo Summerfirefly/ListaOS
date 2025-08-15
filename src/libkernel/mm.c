@@ -1,4 +1,5 @@
 #include "mm.h"
+#include "mm_internal.h"
 
 #include <stdbool.h>
 #include "stdio.h"
@@ -91,8 +92,11 @@ void mm_init(void)
 
     printf("Free RAM: %llu Bytes\n\n", get_free_page_num() * 0x1000);
     mmInitialed = true;
+
+    set_paging();
 }
 
+/********************************** Internal **********************************/
 
 void set_paging(void)
 {

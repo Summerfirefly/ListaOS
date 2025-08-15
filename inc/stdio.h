@@ -14,8 +14,6 @@
 
 #include <stdarg.h>
 
-#define NULL 0
-
 int putc(char ch);
 int puts(const char *str);
 int printf(const char *format, ...);

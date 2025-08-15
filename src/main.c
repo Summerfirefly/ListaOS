@@ -1,12 +1,11 @@
 #include "stdio.h"
-#include "console.h"
-#include "display.h"
-#include "interrupt.h"
-#include "io.h"
-#include "keyboard.h"
-#include "mm.h"
-#include "pci.h"
-#include "timer.h"
+#include "kernel/console.h"
+#include "kernel/display.h"
+#include "kernel/interrupt.h"
+#include "kernel/keyboard.h"
+#include "kernel/mm.h"
+#include "kernel/pci.h"
+#include "kernel/timer.h"
 
 /*
  *         Simple Memory Map
@@ -32,11 +31,12 @@ int main(void)
     display_init();
     printf("Lista OS by Kayo Hikawa\n\n");
 
+    printf("printf float test: %f\n", 3.141592653589793);
+
     idt_init();
     pic_init();
     timer_init();
     mm_init();
-    set_paging();
     pci_init();
     printf("Boot completed!\n");
     printf("%d-bits Mode\n\n", sizeof(unsigned int *) * 8);

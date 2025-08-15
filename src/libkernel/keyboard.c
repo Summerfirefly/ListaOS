@@ -1,4 +1,5 @@
 #include "keyboard.h"
+
 #include <stdbool.h>
 #include "stdio.h"
 
@@ -115,7 +116,7 @@ unsigned char keyboard_buffer_out(void)
 {
     if (bufferUsed == 0)
         return 0;
-    
+
     bufferHead = (bufferHead + 1) % bufferSize;
     --bufferUsed;
 

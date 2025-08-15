@@ -11,6 +11,7 @@
  */
 
 #include "timer.h"
+
 #include "io.h"
 
 unsigned int count = 0;
