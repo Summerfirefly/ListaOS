@@ -2,13 +2,11 @@
 #include "mm_internal.h"
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "stdio.h"
 #include "io.h"
 
-#define PAGE_DIR_BASE 0x1f0000
-#define PAGE_TABLE_BASE 0x200000
-
-#define PHY_MEM_BITMAP_BASE 0x800000
 
 uint32_t *physMemBitmap = (uint32_t *)PHY_MEM_BITMAP_BASE; // RAM pages bitmap, set bit for free page, clear for used
 uint32_t physMemBitmapSize = 0;
@@ -18,31 +16,6 @@ uint32_t *paging_dir = (uint32_t *)PAGE_DIR_BASE;
 uint32_t *paging_table = (uint32_t *)PAGE_TABLE_BASE;
 
 
-//void *alloc_4k_phys(unsigned int num)
-
-
-unsigned long long get_free_page_num(void)
-{
-    unsigned long long freeNum = 0;
-
-    for (uint32_t i = 0; i < physMemBitmapSize; ++i)
-    {
-        uint32_t tmp = physMemBitmap[i];
-        for (int j = 0; j < 32; ++j)
-        {
-            if ((tmp & 1) == 1)
-            {
-                freeNum++;
-            }
-
-            tmp = tmp >> 1;
-        }
-    }
-
-    return freeNum;
-}
-
-
 void mm_init(void)
 {
     if (mmInitialed)
@@ -50,10 +23,10 @@ void mm_init(void)
         return;
     }
 
-    int *infoNum = (int *)0xe000;
-    MEMINFO *memInfo = (MEMINFO *)0xe004;
+    uint32_t infoNum = *(uint32_t *)BIOS_MEM_MAP_BASE;
+    BIOS_MEMINFO *memInfo = (BIOS_MEMINFO *)(BIOS_MEM_MAP_BASE + 4);
 
-    for (int i = 0; i < *infoNum; ++i)
+    for (uint32_t i = 0; i < infoNum; ++i)
     {
         printf("%llu bytes from %llx with type %u\n", memInfo[i].size, memInfo[i].addr, memInfo[i].type);
 
@@ -83,7 +56,7 @@ void mm_init(void)
                 physMemBitmap[physMemBitmapSize++] = 0;
             }
 
-            uint32_t mask = memInfo[i].type == 1 ? 1 << bitPos : 0;
+            uint32_t mask = (memInfo[i].type == 1 && addr >= USABLE_PHY_ADDR_BASE) ? 1 << bitPos : 0;
             physMemBitmap[mapIndex] |= mask;
             addr += 0x1000;
             size -= 0x1000;
@@ -97,6 +70,62 @@ void mm_init(void)
 }
 
 /********************************** Internal **********************************/
+
+void *alloc_4k_phys()
+{
+    for (uint32_t i = 0; i < physMemBitmapSize; ++i)
+    {
+        if (physMemBitmap[i] == 0)
+        {
+            continue;
+        }
+
+        uint32_t addr = i * 0x1000 * 32;
+        size_t bitPos = 0;
+        while ((physMemBitmap[i] & (1 << bitPos)) == 0)
+        {
+            bitPos++;
+        }
+
+        addr += bitPos * 0x1000;
+        physMemBitmap[i] &= ~(1 << bitPos);
+        return (void *)addr;
+    }
+
+    return NULL;
+}
+
+
+void free_4k_phys(void *addr)
+{
+    uint32_t pageIndex = (uint32_t)addr / 0x1000;
+    uint32_t mapIndex = pageIndex / 32;
+    uint8_t bitPos = pageIndex % 32;
+    physMemBitmap[mapIndex] |= 1 << bitPos;
+}
+
+
+unsigned long long get_free_page_num(void)
+{
+    unsigned long long freeNum = 0;
+
+    for (uint32_t i = 0; i < physMemBitmapSize; ++i)
+    {
+        uint32_t tmp = physMemBitmap[i];
+        for (int j = 0; j < 32; ++j)
+        {
+            if ((tmp & 1) == 1)
+            {
+                freeNum++;
+            }
+
+            tmp = tmp >> 1;
+        }
+    }
+
+    return freeNum;
+}
+
 
 void set_paging(void)
 {

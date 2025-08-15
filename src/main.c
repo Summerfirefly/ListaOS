@@ -21,7 +21,7 @@
  *  32KB  0x000b8000-0x000c0000  Text Mode VRAM
  *   4KB  0x001f0000-0x00200000  Paging Directory
  *   4MB  0x00200000-0x00600000  Paging Table
- * 0.39%  0x00800000-0x????????  RAM Map
+ *   2MB  0x00600000-0x00800000  Physical RAM 4K page bitmap, 2MB for maximum 64GB
  */
 
 
