@@ -3,7 +3,7 @@
 
 #define BIOS_MEM_MAP_BASE 0xe000
 
-#define PAGE_DIR_BASE 0x1f0000
+#define PAGE_DIR_BASE 0x1ff000
 #define PAGE_TABLE_BASE 0x200000
 #define PAGE_DIR_VBASE 0xffbff000
 #define PAGE_TABLE_VBASE 0xffc00000

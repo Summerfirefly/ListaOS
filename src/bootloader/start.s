@@ -317,7 +317,7 @@ read_sector:
     movw  %ax, %fs
     movw  %ax, %gs
     movw  %ax, %ss
-    movl  $0x7e00, %ebp
+    movl  $0x7000, %ebp
     movl  %ebp, %esp
     call  0x20000
 
