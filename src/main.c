@@ -46,7 +46,23 @@ int main(void)
     for (int i = 0; x[i] != 0xffff; ++i)
     {
         VBE_MODE_INFO *vbeModes = (VBE_MODE_INFO *)(0x30000 + i * 0x100);
-        if ((vbeModes->modeAttributes&0x98) != 0x98) continue;
+        if ((vbeModes->modeAttributes & 0x98) != 0x98)
+        {
+            continue;
+        }
+
+        if (vbeModes->memoryModel != 6)
+        {
+            // Only print direct color mode
+            continue;
+        }
+
+        if (vbeModes->bitsPerPixel != 24 && vbeModes->bitsPerPixel != 32)
+        {
+            // Only print 24-bits and 32-bits color mode
+            continue;
+        }
+
         printf("%X, %ux%u, ",
                 x[i], vbeModes->xResolution, vbeModes->yResolution);
         switch (vbeModes->memoryModel)

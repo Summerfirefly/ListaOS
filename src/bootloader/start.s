@@ -331,7 +331,7 @@ loop:
 # 0x0192 -> 1920x1080, 32-bits Direct Colour
 # 0x0195 -> 1600x900, 32-bits Direct Colour
 # 0x0198 -> 2560x1440, 32-bits Direct Colour
-VBEModeCode:        .word 0x0198
+VBEModeCode:        .word 0x0195
 VBEModeInfoAddr:    .word 0x7e00
 SVGAInfoAddr:       .word 0xf000
 MemMapAddr:         .word 0xe000
