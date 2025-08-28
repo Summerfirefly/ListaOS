@@ -81,6 +81,8 @@ no_remainder:
     movw $0x4f01, %ax
     movw VBEModeCode, %cx
     int  $0x10
+    cmp  $0x004f, %ax
+    jne  vesa_error
 
     # Get All Video Mode
     xorl %ebx, %ebx
@@ -111,21 +113,8 @@ set_video_mode:
     int  $0x10
     cmp  $0x00, %ah
     jnz  vesa_error
-    jmp  continue
 
-vesa_error:
-    movw $msgVESAError, %ax
-    movw %ax, %bp
-    movw $0x0010, %cx
-    movw $0x000f, %bx
-    movw $0x1301, %ax
-    movb $0x00, %dl
-    movb $0x00, %dh
-    int  $0x10
-    jmp  vesa_error
-msgVESAError: .ascii "VESA Not Support"
-
-continue:
+    # A20 Gate Control
     inb  $0x92, %al
     orb  $0x02, %al
     outb %al, $0x92
@@ -158,10 +147,15 @@ finish_probe:
     movl %cr0, %eax
     orl  $0x1, %eax
     mov  %eax, %cr0
-    data32 ljmp $PROT_MODE_CSEG, $3f
+    data32 ljmp $PROT_MODE_CSEG, $protect_mode_start
 
 fin:
     jmp  fin
+
+vesa_error:
+    movw $msgVESAError, %ax
+    movw %ax, %bp
+    jmp  print_error
 
 load_error:
     movw $msgLoadError, %ax
@@ -311,7 +305,8 @@ read_sector:
     ret
 
 .code32
-3:	movw  $PROT_MODE_DSEG, %ax
+protect_mode_start:
+    movw  $PROT_MODE_DSEG, %ax
     movw  %ax, %ds
     movw  %ax, %es
     movw  %ax, %fs
@@ -346,6 +341,7 @@ seg:            .word 0x1000        # memary address segment
 start_sector:   .int  0x00000000
                 .int  0x00000000
 
+msgVESAError:           .ascii  "VESA error! "
 msgLoadError:           .ascii  "Load error! "
 msgFileMissed:          .ascii  "File missed!"
 FAT1StartSector:        .word   0x0000

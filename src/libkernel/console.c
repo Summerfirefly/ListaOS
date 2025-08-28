@@ -35,6 +35,9 @@ void console_init(void)
 
 inline void print_char(char ch)
 {
+    if (ch == '\0')
+        return;
+
     _draw_font(' ', col, row, FONT_COLOR, BACK_COLOR);
     switch (ch)
     {
@@ -53,8 +56,8 @@ inline void print_char(char ch)
         col = 0;
         break;
     case '\t':
-        row += (col + 4) / consoleWidth;
-        col = (col + 4) % consoleWidth;
+        row += (col + 8) / consoleWidth;
+        col = (col + 8 - col % 8) % consoleWidth;
         break;
     default:
         _draw_font(ch, col, row, FONT_COLOR, BACK_COLOR);

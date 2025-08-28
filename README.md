@@ -22,6 +22,9 @@ A simple operating system for learning perpose
 | ---: | :-------------------: | :------------------------------------------ |
 |   3G | 0x00000000-0xbfffffff | Free to use                                 |
 |  64K | 0xc0000000-0xc000ffff | Kernel                                      |
+|   2K | 0xc0010000-0xc00107ff | IDT                                         |
+|   2M | 0xc0600000-0xc07fffff | Physical RAM 4K page bitmap for management  |
+|   8M | 0xc1000000-0xc17fffff | Video Memory (Up to 1920x1080 32-bit color) |
 |  28K | 0xffbf8000-0xffbfefff | Kernel Stack                                |
 |   4K | 0xffbff000-0xffbfffff | Paging Directory                            |
 |   4M | 0xffc00000-0xffffffff | Paging Table                                |
