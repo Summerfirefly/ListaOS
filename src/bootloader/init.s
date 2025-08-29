@@ -1,12 +1,12 @@
 .set PROT_MODE_CSEG, 0x8
-.set PROT_MODE_DSEG, 0x10
 
 .globl _start
+.extern set_suitable_video_mode
+.extern protect_mode_start
 
 .section .text
-
-_start:
 .code16
+_start:
     movb %dl, DriverNumber
     xorw %ax, %ax
     movw %ax, %ds
@@ -68,51 +68,9 @@ no_remainder:
     movb $0x00, %ah
     int  $0x10
 
-    movw SVGAInfoAddr, %di
-    movw $0x0000, %ax
-    movw %ax, %es
-    movw $0x4f00, %ax
-    int  $0x10
-
-    # Get VBE Information
-    movw $0x0000, %ax
-    movw %ax, %es
-    movw VBEModeInfoAddr, %di
-    movw $0x4f01, %ax
-    movw VBEModeCode, %cx
-    int  $0x10
-    cmp  $0x004f, %ax
+    call set_suitable_video_mode
+    cmpw $0, %ax
     jne  vesa_error
-
-    # Get All Video Mode
-    xorl %ebx, %ebx
-    movw SVGAInfoAddr, %bx
-    addl $0x0000000e, %ebx
-    movl (%ebx), %ebx
-    movw %bx, %dx
-    andl $0xffff0000, %ebx
-    andl $0x0000ffff, %edx
-    shr  $12, %ebx
-    addl %edx, %ebx
-    movw $0x3000, %ax
-    movw %ax, %es
-    movw $0x0000, %di
-2:  movw $0x4f01, %ax
-    movw (%ebx), %cx
-    cmp  $0xffff, %cx
-    je   set_video_mode
-    int  $0x10
-    addw $0x0002, %bx
-    addw $0x0100, %di
-    jmp  2b
-
-set_video_mode:
-    movw VBEModeCode, %bx
-    addw $0x4000, %bx
-    movw $0x4f02, %ax
-    int  $0x10
-    cmp  $0x00, %ah
-    jnz  vesa_error
 
     # A20 Gate Control
     inb  $0x92, %al
@@ -304,31 +262,8 @@ read_sector:
     popw %bp
     ret
 
-.code32
-protect_mode_start:
-    movw  $PROT_MODE_DSEG, %ax
-    movw  %ax, %ds
-    movw  %ax, %es
-    movw  %ax, %fs
-    movw  %ax, %gs
-    movw  %ax, %ss
-    movl  $0x7000, %ebp
-    movl  %ebp, %esp
-    call  0x20000
-
-loop:
-    jmp loop
-
 .section .data
 
-# For QEMU 10.0
-# 0x0118 -> 1024x768, 24-bits Direct Colour
-# 0x0192 -> 1920x1080, 32-bits Direct Colour
-# 0x0195 -> 1600x900, 32-bits Direct Colour
-# 0x0198 -> 2560x1440, 32-bits Direct Colour
-VBEModeCode:        .word 0x0195
-VBEModeInfoAddr:    .word 0x7e00
-SVGAInfoAddr:       .word 0xf000
 MemMapAddr:         .word 0xe000
 MemMapLen:          .int  0x00000000
 

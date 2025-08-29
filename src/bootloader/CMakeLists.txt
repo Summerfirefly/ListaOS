@@ -7,7 +7,9 @@ target_link_options(boot.bin
         -T ${CMAKE_CURRENT_SOURCE_DIR}/boot.lds)
 
 add_executable(init.bin
-    start.s)
+    init.s
+    init_display.s
+    init_protect_mode.s)
 target_link_options(init.bin
     PRIVATE
         -T ${CMAKE_CURRENT_SOURCE_DIR}/init.lds)

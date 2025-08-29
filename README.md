@@ -8,7 +8,6 @@ A simple operating system for learning perpose
 |  28K | 0x00000000-0x00006fff | Kernel Stack                                |
 | 0.5K | 0x00007e00-0x00007fff | Current VBE Mode Info                       |
 |   4K | 0x0000e000-0x0000efff | Memory Info(int 15H)                        |
-| 0.5K | 0x0000f000-0x0000f1ff | SVGA Info                                   |
 |   2K | 0x00010000-0x000107ff | IDT                                         |
 |  64K | 0x00020000-0x0002ffff | Kernel                                      |
 |  64K | 0x00050000-0x0005ffff | Console Text Buffer                         |
