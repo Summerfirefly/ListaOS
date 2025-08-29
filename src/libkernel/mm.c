@@ -5,15 +5,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "stdio.h"
-#include "io.h"
 
 
 uint32_t *physMemBitmap = (uint32_t *)PHY_MEM_BITMAP_BASE; // RAM pages bitmap, set bit for free page, clear for used
 uint32_t physMemBitmapSize = 0;
 bool mmInitialed = false;
-
-uint32_t *paging_dir = (uint32_t *)PAGE_DIR_BASE;
-uint32_t *paging_table = (uint32_t *)PAGE_TABLE_BASE;
 
 
 void mm_init(void)
@@ -65,8 +61,6 @@ void mm_init(void)
 
     printf("Free RAM: %llu Bytes\n\n", get_free_page_num() * 0x1000);
     mmInitialed = true;
-
-    set_paging();
 }
 
 /********************************** Internal **********************************/
@@ -124,19 +118,4 @@ unsigned long long get_free_page_num(void)
     }
 
     return freeNum;
-}
-
-
-void set_paging(void)
-{
-    for (int i = 0; i < 1024; ++i)
-    {
-        paging_dir[i] = (uint32_t)(paging_table + i * 1024) | 0x7;
-        for (int j = 0; j < 1024; ++j)
-        {
-            (paging_table + i * 1024)[j] = (uint32_t)((0x1000 * (i * 1024 + j)) | 0x7);
-        }
-    }
-
-    enable_paging(PAGE_DIR_BASE);
 }

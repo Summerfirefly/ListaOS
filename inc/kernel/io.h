@@ -31,6 +31,4 @@ void outb(uint16_t port, uint8_t data);
 void outw(uint16_t port, uint16_t data);
 void outl(uint16_t port, uint32_t data);
 
-void enable_paging(int dir_addr);
-
 #endif

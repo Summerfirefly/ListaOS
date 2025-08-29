@@ -77,13 +77,3 @@ void load_idt(IDT_DESC idtDescData)
             : "m"(idtDescData)
             :);
 }
-
-void enable_paging(int dir_addr)
-{
-    __asm__("movl %0, %%cr3\n\t"
-            "movl %%cr0, %%eax\n\t"
-            "orl  $0x80000001, %%eax\n\t"
-            "movl %%eax, %%cr0\n\t"
-            :
-            : "a"(dir_addr));
-}
