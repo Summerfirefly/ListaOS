@@ -93,13 +93,15 @@ protect_mode_start:
     movl  $0x00010800, 26(%eax)
     lgdt  24(%eax)
     movl  $0xc0010800, 26(%eax)
-    jmp   2f
 
-2:  movl  $PAGE_DIRECTORY_BASE, %eax
+    # Enable paging
+    movl  $PAGE_DIRECTORY_BASE, %eax
     movl  %eax, %cr3
     movl  %cr0, %eax
     orl   $0x80000001, %eax
     movl  %eax, %cr0
+
+    # Reload GDT data
     movl  $0xc0010800, %eax
     lgdt  24(%eax)
 
