@@ -17,11 +17,11 @@
 #include "timer.h"
 #include "keyboard.h"
 
-static IDT_Entry *idt_gate = (IDT_Entry *) 0x10000;
+static IDT_Entry *idt_gate = (IDT_Entry *) 0xc0010000;
 
 void idt_init(void)
 {
-    IDT_DESC idtDescData = {0x7ff, 0x10000};
+    IDT_DESC idtDescData = {0x7ff, 0xc0010000};
 
     for (int i = 0; i < 256; ++i)
     {

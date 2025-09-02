@@ -2,13 +2,11 @@
 
 #include "display.h"
 #include "font.h"
-#include "string.h"
 
 unsigned int row = 0;
 unsigned int col = 0;
 int cursorState = 0;
 
-unsigned char *consoleBuffer = (unsigned char *)CONSOLE_BUFFER_ADDR;
 unsigned int consoleWidth = 0;
 unsigned int consoleHeight = 0;
 
@@ -23,8 +21,6 @@ void console_init(void)
     FONT_COLOR = COLOR_WHITE;
     CURSOR_COLOR = COLOR_GREY;
     BACK_COLOR = COLOR_BLACK;
-
-    memset((void *)consoleBuffer, 0x00, CONSOLE_BUFFER_SIZE);
 
     DISPLAY_INFO display;
     get_display_info(&display);

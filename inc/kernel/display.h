@@ -14,7 +14,7 @@
 
 #include "color.h"
 
-#define VBE_INFO_ADDR 0x7e00
+#define VBE_INFO_ADDR 0xc0011e00
 
 typedef struct vbe_mode_info
 {

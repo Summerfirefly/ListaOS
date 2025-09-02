@@ -19,6 +19,10 @@ void mm_init(void)
         return;
     }
 
+    // Unmap temporarily map in bootloader init stage
+    kernel_page_unmap(0x8);
+    kernel_page_unmap(0x10);
+
     uint32_t infoNum = *(uint32_t *)BIOS_MEM_MAP_BASE;
     BIOS_MEMINFO *memInfo = (BIOS_MEMINFO *)(BIOS_MEM_MAP_BASE + 4);
 
@@ -118,4 +122,18 @@ unsigned long long get_free_page_num(void)
     }
 
     return freeNum;
+}
+
+
+void kernel_page_mmap(uint32_t phy_page_index, uint32_t vpage_index)
+{
+    uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
+    pageTable[vpage_index] = (phy_page_index << 12) | 0x7;
+}
+
+
+void kernel_page_unmap(uint32_t vpage_index)
+{
+    uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
+    pageTable[vpage_index] = 0;
 }
