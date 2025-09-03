@@ -12,12 +12,16 @@
 
 #include "interrupt.h"
 
+#include <stdint.h>
 #include "intr_handler.h"
 #include "io.h"
-#include "timer.h"
 #include "keyboard.h"
+#include "mm_internal.h"
+#include "timer.h"
+
 
 static IDT_Entry *idt_gate = (IDT_Entry *) 0xc0010000;
+
 
 void idt_init(void)
 {
@@ -27,6 +31,9 @@ void idt_init(void)
     {
         set_idt_gate(i, 0, 0, 0);
     }
+
+    // Page Fault
+    set_idt_gate(0x0e, (unsigned int)page_fault_handler, 0x08, 0x8e);
 
     // System call
     set_idt_gate(0x20, (unsigned int)irq_0x20_handler, 0x08, 0x8e);
@@ -60,6 +67,7 @@ void pic_init(void)
     sti();
 }
 
+
 void set_idt_gate(int intr_num, unsigned int handler_addr, unsigned char seg_sec, unsigned char flag)
 {
     idt_gate[intr_num].zero = 0;
@@ -69,22 +77,31 @@ void set_idt_gate(int intr_num, unsigned int handler_addr, unsigned char seg_sec
     idt_gate[intr_num].type_attr = flag;
 }
 
+
+void page_fault(uint32_t addr, uint32_t err)
+{
+    if ((err & 0x1) == 0)
+    {
+        void *newPage = alloc_4k_phys();
+        kernel_page_mmap((uint32_t)newPage / 0x1000, addr / 0x1000);
+    }
+}
+
+
 void irq_0x20(void)
 {
-    cli();
     outb(M_PIC, 0x60);
     ++count;
-    sti();
 }
+
 
 // 0x21 ~ 0xff user
 void irq_0x21(void)
 {
-    cli();
     outb(M_PIC, 0x61);
     keyboard_buffer_in(inb(0x60));
-    sti();
 }
+
 
 void irq_0x27(void)
 {

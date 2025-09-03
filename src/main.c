@@ -6,6 +6,7 @@
 #include "kernel/mm.h"
 #include "kernel/pci.h"
 #include "kernel/timer.h"
+#include <stdint.h>
 
 
 int main(void)
@@ -24,7 +25,18 @@ int main(void)
     mm_init();
     pci_init();
     printf("Boot completed!\n");
-    printf("%d-bits Mode\n\n", sizeof(unsigned int *) * 8);
+    printf("%d-bits Mode\n\n", sizeof(void *) * 8);
+
+#ifdef DEBUG
+    // Page Fault Test
+    __asm__(
+        "movl $0x321, 0x123\n\t"
+        :
+        :
+        : "memory"
+    );
+    printf("Page Fault Test: PTE = 0x%x, data at 0x123 is %x\n", *((uint32_t *)0xffc00000), *((uint32_t *)0x123));
+#endif
 
     for (;;)
     {

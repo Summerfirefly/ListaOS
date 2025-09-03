@@ -129,6 +129,11 @@ void kernel_page_mmap(uint32_t phy_page_index, uint32_t vpage_index)
 {
     uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
     pageTable[vpage_index] = (phy_page_index << 12) | 0x7;
+    __asm__(
+        "invlpg (%0)\n\t"
+        :
+        : "r"(vpage_index * 0x1000)
+        : "memory");
 }
 
 
@@ -136,4 +141,9 @@ void kernel_page_unmap(uint32_t vpage_index)
 {
     uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
     pageTable[vpage_index] = 0;
+    __asm__(
+        "invlpg (%0)\n\t"
+        :
+        : "r"(vpage_index * 0x1000)
+        : "memory");
 }

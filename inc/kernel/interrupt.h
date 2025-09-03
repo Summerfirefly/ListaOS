@@ -13,6 +13,8 @@
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
 
+#include <stdint.h>
+
 #define M_PIC 0x20
 #define M_DAT 0x21
 #define S_PIC 0xa0
@@ -20,16 +22,18 @@
 
 typedef struct idt_entry
 {
-    unsigned short offset_l; // offset bits 0..15
-    unsigned short selector; // a code segment selector in GDT or LDT
-    unsigned char  zero;      // unused, set to 0
-    unsigned char  type_attr; // type and attributes
-    unsigned short offset_h; // offset bits 16..31
+    uint16_t offset_l; // offset bits 0..15
+    uint16_t selector; // a code segment selector in GDT or LDT
+    uint8_t  zero;      // unused, set to 0
+    uint8_t  type_attr; // type and attributes
+    uint16_t offset_h; // offset bits 16..31
 } IDT_Entry;
 
 void idt_init(void);
 void pic_init(void);
 void set_idt_gate(int intr_num, unsigned int handler_addr, unsigned char seg_sec, unsigned char flag);
+
+void page_fault(uint32_t addr, uint32_t err);
 
 void irq_0x20(void);
 // 0x21 ~ 0xff user
