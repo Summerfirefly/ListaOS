@@ -29,13 +29,9 @@ int main(void)
 
 #ifdef DEBUG
     // Page Fault Test
-    __asm__(
-        "movl $0x321, 0x123\n\t"
-        :
-        :
-        : "memory"
-    );
-    printf("Page Fault Test: PTE = 0x%x, data at 0x123 is %x\n", *((uint32_t *)0xffc00000), *((uint32_t *)0x123));
+    uint32_t *ptr = (uint32_t *)0x123;
+    *ptr = 0x321;
+    printf("Page Fault Test: PTE = 0x%x, data at %p is 0x%x\n", *((uint32_t *)0xffc00000), ptr, *ptr);
 #endif
 
     for (;;)
