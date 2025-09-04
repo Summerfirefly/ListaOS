@@ -19,7 +19,7 @@ A simple operating system for learning perpose
 
 | Size |        Address        |                   Use for                   |
 | ---: | :-------------------: | :------------------------------------------ |
-|   3G | 0x00000000-0xbfffffff | Free to use                                 |
+|   3G | 0x00000000-0xbfffffff | Heap                                        |
 |  64K | 0xc0000000-0xc000ffff | Kernel                                      |
 |   2K | 0xc0010000-0xc00107ff | IDT                                         |
 |   2K | 0xc0010800-0xc0010fff | GDT                                         |

@@ -78,7 +78,7 @@ void *alloc_4k_phys()
             continue;
         }
 
-        uint32_t addr = i * 0x1000 * 32;
+        mem_addr_t addr = i * 0x1000 * 32;
         size_t bitPos = 0;
         while ((physMemBitmap[i] & (1 << bitPos)) == 0)
         {
@@ -96,8 +96,8 @@ void *alloc_4k_phys()
 
 void free_4k_phys(void *addr)
 {
-    uint32_t pageIndex = (uint32_t)addr / 0x1000;
-    uint32_t mapIndex = pageIndex / 32;
+    mem_addr_t pageIndex = (mem_addr_t)addr / 0x1000;
+    mem_addr_t mapIndex = pageIndex / 32;
     uint8_t bitPos = pageIndex % 32;
     physMemBitmap[mapIndex] |= 1 << bitPos;
 }
@@ -125,7 +125,7 @@ unsigned long long get_free_page_num(void)
 }
 
 
-void kernel_page_mmap(uint32_t phy_page_index, uint32_t vpage_index)
+void kernel_page_mmap(mem_addr_t phy_page_index, mem_addr_t vpage_index)
 {
     uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
     pageTable[vpage_index] = (phy_page_index << 12) | 0x7;
@@ -137,7 +137,7 @@ void kernel_page_mmap(uint32_t phy_page_index, uint32_t vpage_index)
 }
 
 
-void kernel_page_unmap(uint32_t vpage_index)
+void kernel_page_unmap(mem_addr_t vpage_index)
 {
     uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
     pageTable[vpage_index] = 0;

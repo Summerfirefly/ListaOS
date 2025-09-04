@@ -23,7 +23,6 @@
 #define X_RES (vbeInfo->xResolution)
 #define Y_RES (vbeInfo->yResolution)
 #define BYTE_PER_PIXEL (vbeInfo->bitsPerPixel / 8)
-#define VRAM_BASE 0xc1000000
 #define VRAM_SIZE 0x00800000
 
 VBE_MODE_INFO *vbeInfo = (VBE_MODE_INFO *)VBE_INFO_ADDR;
