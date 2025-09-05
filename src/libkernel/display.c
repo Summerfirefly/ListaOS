@@ -10,9 +10,9 @@
  *
  */
 
-#include "display.h"
+#include "kernel/display.h"
 
-#include "mm_internal.h"
+#include "kernel/internal/mm_internal.h"
 #include "string.h"
 #include <stdint.h>
 
@@ -32,7 +32,11 @@ void display_init(void)
 {
     for (uint32_t i = 0; i < VRAM_SIZE / 0x1000; ++i)
     {
-        kernel_page_mmap(vbeInfo->physBasePtr / 0x1000 + i, VRAM_BASE / 0x1000 + i);
+        kernel_page_mmap(
+            vbeInfo->physBasePtr / 0x1000 + i,
+            VRAM_BASE / 0x1000 + i,
+            PAGE_FLAG_PRESENT | PAGE_FLAG_USER | PAGE_FLAG_RW
+        );
     }
 
     screen_clear();

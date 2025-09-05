@@ -25,6 +25,9 @@ A simple operating system for learning perpose
 |   2K | 0xc0010800-0xc0010fff | GDT                                         |
 | 0.5K | 0xc0011e00-0xc0011fff | Current VBE Mode Info                       |
 |   4K | 0xc0012000-0xc0012fff | Memory Info(int 15H)                        |
+| 512K | 0xc0020000-0xc009ffff | PCI Function List                           |
+|  16K | 0xc00a0000-0xc00a3fff | AHCI HBA Memory                             |
+| 256K | 0xc00a4000-0xc00e3fff | AHCI Command List & FIS                     |
 |   2M | 0xc0600000-0xc07fffff | Physical RAM 4K page bitmap for management  |
 |   8M | 0xc1000000-0xc17fffff | Video Memory (Up to 1920x1080 32-bit color) |
 |  28K | 0xffbf8000-0xffbfefff | Kernel Stack                                |

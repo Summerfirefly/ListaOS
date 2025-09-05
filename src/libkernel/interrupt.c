@@ -10,15 +10,15 @@
  *
  */
 
-#include "interrupt.h"
+#include "kernel/interrupt.h"
 
 #include <stdint.h>
-#include "intr_handler.h"
-#include "io.h"
-#include "keyboard.h"
-#include "mm_internal.h"
-#include "timer.h"
-#include "types.h"
+#include "kernel/intr_handler.h"
+#include "kernel/io.h"
+#include "kernel/keyboard.h"
+#include "kernel/internal/mm_internal.h"
+#include "kernel/timer.h"
+#include "kernel/types.h"
 
 
 static IDT_Entry *idt_gate = (IDT_Entry *)IDT_BASE;
@@ -84,7 +84,11 @@ void page_fault(uint32_t addr, uint32_t err)
     if ((err & 0x1) == 0)
     {
         void *newPage = alloc_4k_phys();
-        kernel_page_mmap((uint32_t)newPage / 0x1000, addr / 0x1000);
+        kernel_page_mmap(
+            (uint32_t)newPage / 0x1000,
+            addr / 0x1000,
+            PAGE_FLAG_PRESENT | PAGE_FLAG_USER | PAGE_FLAG_RW
+        );
     }
 }
 

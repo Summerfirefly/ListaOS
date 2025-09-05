@@ -10,9 +10,9 @@
  *
  */
 
-#include "timer.h"
+#include "kernel/timer.h"
 
-#include "io.h"
+#include "kernel/io.h"
 
 unsigned int count = 0;
 

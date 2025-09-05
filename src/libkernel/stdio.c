@@ -15,7 +15,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "console.h"
+#include "kernel/console.h"
 #include "string.h"
 
 

@@ -10,7 +10,7 @@
  *
  */
 
-#include "io.h"
+#include "kernel/io.h"
 
 void cli(void)
 {

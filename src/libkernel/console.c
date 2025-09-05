@@ -1,7 +1,7 @@
-#include "console.h"
+#include "kernel/console.h"
 
-#include "display.h"
-#include "font.h"
+#include "kernel/display.h"
+#include "kernel/font.h"
 
 unsigned int row = 0;
 unsigned int col = 0;

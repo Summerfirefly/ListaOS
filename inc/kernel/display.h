@@ -12,7 +12,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include "color.h"
+#include "kernel/color.h"
 
 #define VBE_INFO_ADDR 0xc0011e00
 

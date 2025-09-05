@@ -1,5 +1,5 @@
-#include "mm.h"
-#include "mm_internal.h"
+#include "kernel/mm.h"
+#include "kernel/internal/mm_internal.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -125,10 +125,10 @@ unsigned long long get_free_page_num(void)
 }
 
 
-void kernel_page_mmap(mem_addr_t phy_page_index, mem_addr_t vpage_index)
+void kernel_page_mmap(mem_addr_t phy_page_index, mem_addr_t vpage_index, uint8_t flags)
 {
     uint32_t *pageTable = (uint32_t *)PAGE_TABLE_VBASE;
-    pageTable[vpage_index] = (phy_page_index << 12) | 0x7;
+    pageTable[vpage_index] = (phy_page_index << 12) | flags;
     __asm__(
         "invlpg (%0)\n\t"
         :
