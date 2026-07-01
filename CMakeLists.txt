@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_ASM_COMPILER "$ENV{HOME}/.local/software/i686-elf/bin/i686-elf-gcc")
+set(GNU_TOOLCHAIN_DIR "$ENV{HOME}/.local/software/gnu-toolchain/i686-elf/16.1.0" CACHE PATH "GNU Toolchain dir")
+
+set(CMAKE_ASM_COMPILER "${GNU_TOOLCHAIN_DIR}/bin/i686-elf-gcc")
 set(CMAKE_ASM_FLAGS "-nostdlib")
-set(CMAKE_C_COMPILER "$ENV{HOME}/.local/software/i686-elf/bin/i686-elf-gcc")
+set(CMAKE_C_COMPILER "${GNU_TOOLCHAIN_DIR}/bin/i686-elf-gcc")
 set(CMAKE_C_FLAGS "-Wall -Wextra -std=c11 -ffreestanding -fno-builtin -fno-pic -fno-stack-protector")
-set(CMAKE_AR "$ENV{HOME}/.local/software/i686-elf/bin/i686-elf-ar")
+set(CMAKE_AR "${GNU_TOOLCHAIN_DIR}/bin/i686-elf-ar")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 

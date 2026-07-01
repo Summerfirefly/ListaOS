@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
-GCC_VERSION="15.2.0"
-BINUTILS_VERSION="2.45"
+GCC_VERSION="16.1.0"
+BINUTILS_VERSION="2.46.1"
 
 GCC_DOWNLOAD_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/gnu/gcc"
 BINUTILS_DOWNLOAD_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/gnu/binutils"
 
 TARGET="i686-elf"
-PREFIX="$HOME/.local/software/i686-elf"
+PREFIX="$HOME/.local/software/gnu-toolchain/${TARGET}/${GCC_VERSION}"
+MAKE_ARG="-j4"
 
 export PATH="$PREFIX/bin:$PATH"
-PWD=$(pwd)
-BUILDDIR="$PWD/build-toolchain"
+CURRENT_DIR=$(pwd)
+BUILDDIR="$CURRENT_DIR/build-toolchain"
 
 function download_source() {
     if [ ! -e "binutils-${BINUTILS_VERSION}.tar.xz" ]
@@ -41,7 +42,7 @@ function build_binutils() {
     mkdir -p build-binutils
     cd build-binutils
     "../binutils-${BINUTILS_VERSION}/configure" --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
-    make
+    make ${MAKE_ARG}
 }
 
 function build_gcc() {
@@ -50,7 +51,7 @@ function build_gcc() {
     mkdir -p build-gcc
     cd build-gcc
     "../gcc-${GCC_VERSION}/configure" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers --disable-hosted-libstdcxx
-    make all-gcc && make all-target-libgcc && make all-target-libstdc++-v3
+    make all-gcc ${MAKE_ARG} && make all-target-libgcc ${MAKE_ARG} && make all-target-libstdc++-v3 ${MAKE_ARG}
 }
 
 function install_binutils() {
@@ -102,5 +103,5 @@ then
     exit 5
 fi
 
-cd "$PWD"
+cd "$CURRENT_DIR"
 rm -rf build-toolchain
