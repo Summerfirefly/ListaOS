@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
-set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_C_FLAGS "-Wall -Wextra -ffreestanding -mno-red-zone -mno-stack-arg-probe")
 set(CMAKE_C_COMPILER_TARGET x86_64-unknown-uefi)
 
 project(bootloader-uefi)
@@ -16,7 +16,7 @@ add_executable(bootx64.efi
 
 target_include_directories(bootx64.efi
     PRIVATE
-    /usr/include)
+    ${CMAKE_SOURCE_DIR}/posix-uefi)
 
 target_link_options(bootx64.efi
     PRIVATE
